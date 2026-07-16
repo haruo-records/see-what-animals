@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Design tokens — single source of truth (mirrored in tailwind.config.ts)
+   ============================================================ */
+:root {
+  /* Foundation.
+     Page = Paper (soft). Mat = Plaster (a touch darker than Paper).
+     Canvas = the near-white surface the work is mounted on — the ONLY white. */
+  --color-paper: #f4f0e7;
+  --color-plaster: #e8e4da;
+  --color-canvas: #fdfdfb;
+  --color-stone: #c9c4b8;
+  /* Secondary *text* — ~20% darker than Stone so labels stay quiet but readable.
+     Lines, frame, and backgrounds keep Stone; only text uses this. */
+  --color-muted: #a19d91;
+  --color-charcoal: #292a28;
+  --color-ink: #171817;
+
+  /* Natural accents — one per screen, small area */
+  --color-moss: #667363;
+  --color-water: #6e8d93;
+  --color-clay: #a66f58;
+  --color-sand: #d5c6a7;
+  --color-dusk: #45495a;
+
+  /* Screen-level accent. Overridden per route where a single accent is wanted. */
+  --accent: var(--color-moss);
+
+  color-scheme: light;
+}
+
+/* Dusk context — reserved for special exhibitions / night observation.
+   Apply data-theme="dusk" on a section or <html> to opt in later. */
+[data-theme="dusk"] {
+  --color-paper: #2b2e37;
+  --color-plaster: #323642;
+  --color-canvas: #3b3f4b;
+  --color-stone: #565b69;
+  --color-muted: #8b91a0;
+  --color-charcoal: #e6e3da;
+  --color-ink: #f4f0e7;
+  --accent: var(--color-sand);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-charcoal);
+    font-feature-settings: "kern";
+  }
+
+  /* Latin body copy carries a slightly open tracking; JP resets it. */
+  :lang(en) {
+    letter-spacing: 0.005em;
+  }
+  :lang(ja) {
+    letter-spacing: 0;
+    line-height: 1.85;
+  }
+
+  ::selection {
+    background: var(--color-sand);
+    color: var(--color-ink);
+  }
+
+  /* Visible, quiet focus — never removed. */
+  :focus-visible {
+    outline: 2px solid var(--color-dusk);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  /* Eyebrow / specimen label treatment */
+  .u-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  /* Reading measure for editorial body */
+  .u-measure {
+    max-width: 42rem;
+  }
+}
+
+/* ============================================================
+   Reduced motion — honoured globally.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
