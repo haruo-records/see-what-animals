@@ -351,3 +351,110 @@ locales/        en · ja dictionaries
 types/          all domain types
 public/specimens/  drop real work images here
 ```
+
+---
+
+## Anonymous observation analytics (Supabase)
+
+When someone answers, their single-choice answers are recorded **anonymously** so
+the site can show real distributions ("how differently people saw this form") and
+break them down by country/language/device later. No accounts, no sign-in, no PII,
+no cross-site tracking, no fingerprint.
+
+**Flow**
+
+```
+game (/) --submit--> POST /api/observations --validate--> Supabase (service role)
+result page --------> GET  /api/observations/results ---> real percentages
+```
+
+- **Scoped by session** — every answer stores the Observation Session id
+  (`session_id`), and aggregation filters on `session_id + question_id`, so a
+  `questionId` reused across different runs never mixes. If you created the table
+  before this change, run the one-line `alter table ... add column session_id`
+  shown at the top of `supabase/schema.sql`.
+- **Country** is derived server-side from Vercel's `x-vercel-ip-country` header.
+  The raw IP is never read for storage or saved. Locally the header is absent, so
+  `country_code` is `null` (never hardcode a country in code).
+- **Device** is a coarse bucket derived from the User-Agent (`mobile | tablet |
+  desktop | unknown`); the raw UA is not stored.
+- **Anonymous session id** is a rotating UUID in `localStorage` (~90 days), no PII.
+- **First-touch UTM** is captured once and reused; **referrer** is stored as a bare
+  host or `direct`.
+- **Version**: `gameVersion` lives in one place (`lib/collection/config.ts`,
+  optionally overridden by `NEXT_PUBLIC_GAME_VERSION`); `questionVersion` lives on
+  each question in `data/questions.ts` (`version`).
+- **Save failures never block the game** — the POST is fire-and-forget with
+  `keepalive`; errors are logged in dev only.
+- **No dummy data**: the result percentages come from the live API. If Supabase is
+  not configured or there are no responses yet, choices simply show **0%** — never
+  invented numbers. (The offered *names* and *notes* on the result page are still
+  editable placeholder content, not analytics.)
+
+**GA4 vs Supabase** — GA4/GTM (if enabled) receive a lightweight `see_what_answer`
+behaviour event (`question_id`, `answer_id`, `game_version`, `question_version`
+only). The Supabase table is the source for on-site distributions. Session id, raw
+IP, full referrer URLs, and any PII are never sent to GA4.
+
+**Environment variables** (see `.env.example`)
+
+| Variable | Where | Purpose |
+| --- | --- | --- |
+| `SUPABASE_URL` | server | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | Insert/aggregate. Never exposed to the browser. |
+| `NEXT_PUBLIC_GAME_VERSION` | client | Optional override of `gameVersion`. |
+
+**Supabase setup (one time)**
+
+1. Create a Supabase project.
+2. SQL Editor → paste and run `supabase/schema.sql` (table + indexes + RLS + the
+   `get_observation_results` function). RLS is on with no anon policies, so only the
+   server (service role) can read/write — browsers cannot INSERT directly.
+3. Project Settings → API → copy the Project URL and the **service_role** key.
+4. In Vercel → Project → Settings → Environment Variables, add `SUPABASE_URL` and
+   `SUPABASE_SERVICE_ROLE_KEY` (Production + Preview). **Redeploy.**
+5. Answer once on the live site, then check the `observation_responses` table.
+
+**World vs country aggregation**
+
+```
+GET /api/observations/results?sessionId=<id>&questionId=<id>            # world (all countries)
+GET /api/observations/results?sessionId=<id>&questionId=<id>&country=JP # Japan only
+```
+
+- `sessionId` + `questionId` are required; results are always scoped to that run.
+- `country` is optional and validated server-side (ISO alpha-2). Absent = world;
+  an invalid value returns **400**. The world total is the standard display; the
+  on-site result UI shows the world distribution and does not add a country switch
+  (the API supports one when you want it).
+- **`XX`** is the stored country when Vercel can't determine one (e.g. local dev).
+  The `country_code` column is `NOT NULL DEFAULT 'XX'`. `XX` is excluded from the
+  "top countries" list. The raw IP is never read for storage or saved — only
+  Vercel's country header is used.
+
+**Country breakdown threshold** — `MIN_COUNTRY_SAMPLE_SIZE` (default 20) in
+`lib/collection/config.ts`. Below it, a country block returns
+`{ available: false, reason: "insufficient_sample" }`.
+
+**Migration for an existing table** — if you created `observation_responses`
+before `country_code`/`session_id` existed, run the commented `alter table …`
+lines at the top of `supabase/schema.sql` (they backfill `country_code` to `'XX'`
+and make it `NOT NULL`), then re-run the rest of the file.
+
+**Local testing** — Vercel's geo header is absent locally, so answers save as
+`XX`. To test a specific country, send the header yourself:
+
+```
+curl -X POST http://localhost:3000/api/observations \
+  -H "content-type: application/json" \
+  -H "x-vercel-ip-country: JP" \
+  -d '{"sessionId":"observation-023","gameVersion":"1.0.0","anonymousSessionId":"00000000-0000-4000-8000-000000000000","answers":[{"questionId":"q-see","answerId":"c-bird","questionVersion":"1"}]}'
+```
+
+Or set `DEV_FALLBACK_COUNTRY=JP` (honoured only when `NODE_ENV !== "production"`).
+
+**Cookie consent** — this design stores an anonymous id in `localStorage` (not a
+cookie) and does not collect PII, which reduces consent obligations, but whether a
+banner is legally required depends on your audience (e.g. EU/UK) and any analytics
+you enable. This is an implementation note, not legal advice — confirm for your
+regions before launch.
