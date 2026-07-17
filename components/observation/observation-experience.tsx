@@ -92,6 +92,8 @@ export function ObservationExperience({
   function submit() {
     if (submittedRef.current) return; // guard double-click / re-entry
     submittedRef.current = true;
+    // eslint-disable-next-line no-console
+    console.info("[see-what] submit() invoked (confirm)");
 
     if (note.trim()) trackEvent({ event: "observation_note_submit", observation_id: session.id });
     observationService.submit({ sessionId: session.id, answers, note });
