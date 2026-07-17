@@ -19,7 +19,8 @@ export type AnalyticsEvent =
   | "product_view"
   | "shop_click"
   | "newsletter_click"
-  | "contact_click";
+  | "contact_click"
+  | "see_what_answer";
 
 type Payload = Record<string, string | number | boolean | undefined> & {
   event: AnalyticsEvent;
