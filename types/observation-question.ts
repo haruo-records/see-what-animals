@@ -21,4 +21,6 @@ export type ObservationQuestion = {
   choices?: ObservationChoice[];
   required: boolean;
   maxLength?: number;
+  /** Bump when the image, choices, or wording change materially (analytics). */
+  version?: string;
 };

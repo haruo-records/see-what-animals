@@ -4,3 +4,4 @@ export * from "./observation-session";
 export * from "./observation-result";
 export * from "./product";
 export * from "./field-note";
+export * from "./collection";
