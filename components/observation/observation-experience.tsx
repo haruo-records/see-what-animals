@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { AnimalReference, ObservationQuestion, ObservationSession } from "@/types";
 import { getDictionary } from "@/locales";
 import { siteSettings } from "@/data/site-settings";
 import { observationService } from "@/lib/observation/observation-service";
 import { trackEvent } from "@/lib/analytics";
+import { submitObservations, captureFirstTouchUtm } from "@/lib/collection/client";
+import { GAME_VERSION } from "@/lib/collection/config";
 import { SpecimenView } from "./specimen-view";
 import { ObservationPrompt } from "./observation-prompt";
 import { ChoiceList } from "./choice-list";
@@ -42,12 +44,14 @@ export function ObservationExperience({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
   const [alreadyObserved, setAlreadyObserved] = useState(false);
+  const submittedRef = useRef(false);
 
   const resultHref = `/observations/${session.slug}`;
 
   useEffect(() => {
     trackEvent({ event: "observation_view", observation_id: session.id, animal_id: animal.id });
     trackEvent({ event: "observation_start", observation_id: session.id, animal_id: animal.id });
+    captureFirstTouchUtm(); // record first-touch UTM even if they leave before submitting
     if (observationService.getResponse(session.id)) setAlreadyObserved(true);
   }, [session.id, animal.id]);
 
@@ -86,8 +90,35 @@ export function ObservationExperience({
     if (index > 0) setIndex((i) => i - 1);
   }
   function submit() {
+    if (submittedRef.current) return; // guard double-click / re-entry
+    submittedRef.current = true;
+
     if (note.trim()) trackEvent({ event: "observation_note_submit", observation_id: session.id });
     observationService.submit({ sessionId: session.id, answers, note });
+
+    // Collect the single-choice answers actually given (free-text is not counted).
+    const collected = questions
+      .filter((q) => q.type === "single-choice" && (answers[q.id] ?? "").length > 0)
+      .map((q) => ({
+        questionId: q.id,
+        answerId: answers[q.id],
+        questionVersion: q.version ?? "1",
+      }));
+
+    // GA4 (behaviour) — one event per answer. No session id / PII sent.
+    collected.forEach((a) =>
+      trackEvent({
+        event: "see_what_answer",
+        question_id: a.questionId,
+        answer_id: a.answerId,
+        game_version: GAME_VERSION,
+        question_version: a.questionVersion,
+      }),
+    );
+
+    // Anonymous distribution store (Supabase) — fire-and-forget, never blocks.
+    void submitObservations(session.id, collected);
+
     trackEvent({ event: "observation_complete", observation_id: session.id, animal_id: animal.id });
     trackEvent({ event: "observation_result_view", observation_id: session.id });
     router.push(resultHref);

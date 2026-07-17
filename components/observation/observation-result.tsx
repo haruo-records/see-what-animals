@@ -6,7 +6,7 @@ import type {
 } from "@/types";
 import { getDictionary } from "@/locales";
 import { formatDate } from "@/lib/observation/session-status";
-import { ResultDistribution } from "./result-distribution";
+import { LiveDistribution } from "./live-distribution";
 import { ArchiveLink } from "./archive-link";
 import { SpecimenView } from "./specimen-view";
 import { Divider } from "@/components/ui/divider";
@@ -41,18 +41,7 @@ export function ObservationResult({
 
   const distributions = questions
     .filter((q) => q.type === "single-choice")
-    .map((q) => {
-      const rows = result.choiceResults.filter((c) => c.questionId === q.id);
-      if (rows.length === 0) return null;
-      return (
-        <ResultDistribution
-          key={q.id}
-          question={q}
-          results={rows}
-          yourChoiceId={yourAnswers?.[q.id]}
-        />
-      );
-    });
+    .map((q) => <LiveDistribution key={q.id} question={q} sessionId={session.id} />);
 
   return (
     <div className="flex flex-col gap-16">
