@@ -14,7 +14,7 @@ import {
   RESULTS_ENDPOINT,
   UTM_FIRST_TOUCH_KEY,
 } from "./config";
-import type { IncomingAnswer, ResultsResponse } from "@/types";
+import type { IncomingAnswer, ResultsResponse } from "@/types/collection";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
