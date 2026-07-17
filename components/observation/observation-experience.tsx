@@ -117,6 +117,11 @@ export function ObservationExperience({
     );
 
     // Anonymous distribution store (Supabase) — fire-and-forget, never blocks.
+    // eslint-disable-next-line no-console
+    console.info("[see-what] submit → POST /api/observations", {
+      sessionId: session.id,
+      answers: collected.length,
+    });
     void submitObservations(session.id, collected);
 
     trackEvent({ event: "observation_complete", observation_id: session.id, animal_id: animal.id });

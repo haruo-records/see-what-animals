@@ -25,6 +25,11 @@ export function LiveDistribution({
   useEffect(() => {
     setYourChoiceId(observationService.getResponse(sessionId)?.answers[question.id]);
     let active = true;
+    // eslint-disable-next-line no-console
+    console.info("[see-what] result → GET /api/observations/results", {
+      sessionId,
+      questionId: question.id,
+    });
     fetchResults(sessionId, question.id).then((res) => {
       if (!active) return;
       const mapped: ChoiceResult[] = (res?.global ?? []).map((g) => ({
