@@ -3,6 +3,7 @@ import { observationSessions } from "@/data/observation-sessions";
 import { getAnimalReference } from "@/data/animal-references";
 import { resultService } from "@/lib/observation/result-service";
 import { deriveStatus } from "@/lib/observation/session-status";
+import { isPublic } from "@/lib/observation/publish";
 import { PageShell } from "@/components/layout/page-shell";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ObservationList } from "@/components/observations/observation-list";
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
  */
 export default function ArchivePage() {
   const items = observationSessions
-    .filter((s) => deriveStatus(s) === "closed")
+    .filter((s) => isPublic(s) && deriveStatus(s) === "closed")
     .sort((a, b) => new Date(b.closesAt).getTime() - new Date(a.closesAt).getTime())
     .map((session) => ({
       session,

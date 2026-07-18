@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteSettings } from "@/data/site-settings";
 import { observationSessions } from "@/data/observation-sessions";
+import { publicSessions } from "@/lib/observation/publish";
 import { getAnimalReference } from "@/data/animal-references";
 import { getQuestion } from "@/data/questions";
 import { isAcceptingResponses } from "@/lib/observation/session-status";
@@ -19,7 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const session = observationSessions.find((s) => s.featured) ?? observationSessions[0];
+  // A work registered for a future date must not become the home page early,
+  // even if it was marked featured when it was registered.
+  const live = publicSessions(observationSessions);
+  const session = live.find((s) => s.featured) ?? live[0] ?? observationSessions[0];
   const animal = getAnimalReference(session.animalId);
   const questions = session.questionIds
     .map((id) => getQuestion(id))

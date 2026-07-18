@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteSettings } from "@/data/site-settings";
 import { observationSessions } from "@/data/observation-sessions";
+import { publicSessions } from "@/lib/observation/publish";
 import { products } from "@/data/products";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -14,7 +15,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
   }));
 
-  const observationEntries = observationSessions.map((s) => ({
+  // Published works only. Listing a scheduled session here would hand search
+  // engines a work that is not meant to exist yet, and a 404 for it besides.
+  const observationEntries = publicSessions(observationSessions).map((s) => ({
     url: `${base}/observations/${s.slug}`,
     lastModified: new Date(s.closesAt),
   }));
