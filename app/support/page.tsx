@@ -35,7 +35,7 @@ function Statement({ children }: { children: ReactNode }) {
  */
 export default function SupportPage() {
   return (
-    <section className="py-12 sm:py-18">
+    <section className="pb-6 pt-12 sm:pb-8 sm:pt-18">
       <PageShell width="reading">
         {/* Header */}
         <Eyebrow>Support</Eyebrow>
@@ -128,8 +128,13 @@ export default function SupportPage() {
         </div>
 
         {/* Contact — quiet, page-bottom, minimal. Not a primary path; just a
-            small muted line after everything else, with generous space above. */}
-        <div className="mt-16">
+            small muted line after everything else.
+
+            The tail below it is deliberately short. It used to be
+            mt-16 above + py-18 section bottom + mt-16 footer = 12.5rem of
+            nothing on desktop; the address now keeps its breath above and
+            about half the drop below. */}
+        <div className="mt-12">
           <ContactEmail />
         </div>
       </PageShell>

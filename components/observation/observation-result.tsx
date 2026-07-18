@@ -7,7 +7,6 @@ import type {
 import { getDictionary } from "@/locales";
 import { formatDate } from "@/lib/observation/session-status";
 import { LiveDistribution } from "./live-distribution";
-import { ArchiveLink } from "./archive-link";
 import { SpecimenView } from "./specimen-view";
 import { ShareResult } from "./share-result";
 import { Divider } from "@/components/ui/divider";
@@ -113,16 +112,15 @@ export function ObservationResult({
 
         <Divider className="my-9" />
 
-        <div className="flex flex-col gap-5">
+        {/* The animals archive is reached from the footer only — one entrance,
+            not one per page. ArchiveLink stays in the codebase (with its
+            animals_archive_click event) for when a work-level bridge is wanted
+            again. Field Notes is likewise out of the UI but still routed. */}
+        <div className="flex flex-col gap-4">
           <p className="text-caption text-muted">
             {formatDate(session.startsAt)} — {formatDate(session.closesAt)}
           </p>
-          <ArchiveLink animal={animal} observationId={session.id} />
-          {/* Field Notes has no role yet; the route and data remain, but the
-              link is out of the UI. Restore this line to bring it back. */}
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:gap-8">
-            <TextLink href="/observations">{dict.result.past}</TextLink>
-          </div>
+          <TextLink href="/observations">{dict.result.past}</TextLink>
         </div>
       </div>
     </div>
