@@ -30,7 +30,16 @@ export type SupportTier = {
 };
 
 export const oneTimeTiers: SupportTier[] = [
-  { id: "once-100", amount: 100, cadence: "one-time", href: process.env.NEXT_PUBLIC_STRIPE_ONCE_100 ?? "" },
+  // ¥100 → Stripe SANDBOX (TEST mode) Payment Link. Test/sandbox only — NOT a live
+  // charge. Replace with the live Payment Link before launch. An env var
+  // (NEXT_PUBLIC_STRIPE_ONCE_100), if set, still overrides this default.
+  {
+    id: "once-100",
+    amount: 100,
+    cadence: "one-time",
+    href: process.env.NEXT_PUBLIC_STRIPE_ONCE_100 ?? "https://buy.stripe.com/test_4gMeVd7lt28Ga4R9AJdAk00",
+  },
+  // Other amounts intentionally have no link yet (render as quietly disabled).
   { id: "once-300", amount: 300, cadence: "one-time", href: process.env.NEXT_PUBLIC_STRIPE_ONCE_300 ?? "" },
 ];
 
