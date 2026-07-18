@@ -29,6 +29,8 @@ type Payload = Record<string, string | number | boolean | undefined> & {
 declare global {
   interface Window {
     dataLayer?: unknown[];
+    /** GA4 gtag.js, defined by the Google tag in the root layout. */
+    gtag?: (...args: unknown[]) => void;
   }
 }
 

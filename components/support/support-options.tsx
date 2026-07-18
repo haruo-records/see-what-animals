@@ -6,16 +6,17 @@ import {
   formatYen,
   type SupportTier,
 } from "@/data/support";
+import { SupportLink } from "./support-link";
 
 /**
  * "Choose your support" — the live support control. Each tier is a Stripe
  * Payment Link (an external URL): configured tiers are real links; unconfigured
  * tiers render quietly disabled so the page is never broken before launch.
  *
- * Server component on purpose — the tiers are plain links, so there is nothing
- * to run on the client. Migrating to Stripe Checkout / Elements later means
- * turning these <a>/disabled elements into a client control here; the data in
- * data/support.ts stays the same.
+ * Server component — the enabled links are rendered via the small client
+ * <SupportLink>, which fires a GA4 `support_click` on click without delaying the
+ * navigation. Migrating to Stripe Checkout / Elements later means changing that
+ * link component; the data in data/support.ts stays the same.
  */
 
 const chipBase =
@@ -35,15 +36,16 @@ function Tier({ tier }: { tier: SupportTier }) {
       </span>
     );
   }
+  const supportType = tier.cadence === "monthly" ? "monthly" : "one_time";
   return (
-    <a
+    <SupportLink
       href={tier.href}
-      target="_blank"
-      rel="noopener noreferrer"
+      supportType={supportType}
+      amount={tier.amount}
       className={`${chipBase} border border-stone text-charcoal hover:border-charcoal hover:text-ink`}
     >
       {label}
-    </a>
+    </SupportLink>
   );
 }
 
@@ -59,14 +61,14 @@ export function SupportOptions({ idSuffix = "" }: { idSuffix?: string }) {
           {/* Custom amount is a ONE-TIME Stripe payment (customer chooses price),
               so it sits here after ¥100 / ¥300, styled identically to the fixed
               tiers — an ordinary enabled link, never disabled/greyed. */}
-          <a
+          <SupportLink
             href={customSupportHref}
-            target="_blank"
-            rel="noopener noreferrer"
+            supportType="one_time"
+            amount="custom"
             className={`${chipBase} border border-stone text-charcoal hover:border-charcoal hover:text-ink`}
           >
             Custom amount
-          </a>
+          </SupportLink>
         </div>
       </div>
 

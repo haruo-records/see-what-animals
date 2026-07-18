@@ -4,6 +4,7 @@ import { sans, serif, jp } from "./fonts";
 import { siteSettings } from "@/data/site-settings";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteSettings.siteUrl),
@@ -47,7 +48,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable} ${jp.variable}`}>
       <body className="min-h-screen font-sans">
-        {/* Analytics: add GTM/GA <Script> here when NEXT_PUBLIC_* ids are set — see README. */}
+        {/* Google Analytics 4 (gtag.js) — loaded once for every page. */}
+        <GoogleAnalytics />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-charcoal focus:px-4 focus:py-2 focus:text-paper"
