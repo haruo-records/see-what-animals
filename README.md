@@ -1,8 +1,10 @@
 # See What?
 
-**Observation is a luxury.** A project for looking before naming.
+**A place to see before naming.** *Where words fall short, observation begins.*
 
-See What? is the public brand + observation-game site. The **animals archive**
+See What? is the public brand + observation site. It is **not defined as a game**:
+there is no competition, no correct or incorrect answer, no score. The
+interaction is playful, but its purpose is to see before naming. The **animals archive**
 (`https://haruo-records.github.io/animals-site/`) remains the permanent home of
 the works themselves. This site never duplicates work-detail pages — it links
 back to the archive.
@@ -15,8 +17,8 @@ back to the archive.
 
 Fully built and wired to mock data + `localStorage`:
 
-- **Home (`/`) = the current observation game.** Opening the site *is* the
-  experience — a two-column page (framed work on the left, the game on the right).
+- **Home (`/`) = the current observation.** Opening the site *is* the
+  experience — a two-column page (framed work on the left, the questions on the right).
   There is no start screen and **no "begin" button**: looking at the work already
   is the observation, so the first question ("What do you see?") is present at
   once. On mobile it stacks to one column.
@@ -25,7 +27,7 @@ Fully built and wired to mock data + `localStorage`:
   status or aphorism text: the record is just the work, the distribution, the
   names/notes others gave it, and the link back to the animals archive. `count`
   and `totalResponses` stay in the data for future analysis. Same two-column shape
-  as the game.
+  as the observation screen.
 - **No observation numbers on screen.** `id` / `slug` / `observationNumber` stay
   in the data as management fields, but nothing numeric is shown to the visitor.
 - **Past Observations (`/observations`)** — a register of closed sessions,
@@ -127,7 +129,7 @@ body and three projecting shapes,"* not *"a bird-shaped creature."*
 
 - **Set the run length here, not in code.** 7 / 14 / 30 days are just different
   `closesAt` dates.
-- Only one session should have `featured: true` — it drives the game on `/`.
+- Only one session should have `featured: true` — it drives the observation on `/`.
 - **Status is automatic.** `scheduled | open | closed` is derived from the clock
   in `lib/observation/session-status.ts`. Set an explicit `status` only to override.
 - **Demo note:** the featured session uses a `weeklyWindow()` helper so it is
@@ -172,7 +174,7 @@ separate, so you are never coupled to one provider. No checkout runs on this sit
 
 ### Navigation — `data/navigation.ts`
 
-`/` is itself the game, so **Play is not in the nav**. The header is just the
+`/` is itself the observation, so **Play is not in the nav**. The header is just the
 wordmark (→ `/`, the current observation) plus **About · Shop**. `primaryNav`
 holds those two; `footerNav` holds the utility trio **animals Archive · Contact ·
 Privacy**.
@@ -364,7 +366,7 @@ no cross-site tracking, no fingerprint.
 **Flow**
 
 ```
-game (/) --submit--> POST /api/observations --validate--> Supabase (service role)
+observation (/) --submit--> POST /api/observations --validate--> Supabase (service role)
 result page --------> GET  /api/observations/results ---> real percentages
 ```
 
@@ -384,7 +386,7 @@ result page --------> GET  /api/observations/results ---> real percentages
 - **Version**: `gameVersion` lives in one place (`lib/collection/config.ts`,
   optionally overridden by `NEXT_PUBLIC_GAME_VERSION`); `questionVersion` lives on
   each question in `data/questions.ts` (`version`).
-- **Save failures never block the game** — the POST is fire-and-forget with
+- **Save failures never block the experience** — the POST is fire-and-forget with
   `keepalive`; errors are logged in dev only.
 - **No dummy data**: the result percentages come from the live API. If Supabase is
   not configured or there are no responses yet, choices simply show **0%** — never

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { siteSettings } from "@/data/site-settings";
 import { observationSessions } from "@/data/observation-sessions";
 import { getAnimalReference } from "@/data/animal-references";
 import { getQuestion } from "@/data/questions";
@@ -8,13 +9,13 @@ import { PageShell } from "@/components/layout/page-shell";
 import { ObservationExperience } from "@/components/observation/observation-experience";
 
 /**
- * `/` IS the current observation game. Opening the site starts the experience —
+ * `/` IS the current observation. Opening the site starts the experience —
  * there is no separate Home or Play page to find.
  */
 export const metadata: Metadata = {
-  title: { absolute: "See What? — A game for looking before naming" },
+  title: { absolute: `${siteSettings.brandName} — ${siteSettings.tagline}` },
   description:
-    "Observe an unfamiliar form, share what you see, and discover how differently others saw it.",
+    "Observe an unfamiliar form, leave what you saw, and discover how differently others saw it.",
 };
 
 export default function HomePage() {

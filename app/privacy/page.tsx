@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           are accessing from (estimated from your IP address on our server — your exact location is
           never requested and your IP address is never stored), your browser language, a coarse
           device type (mobile, tablet, or desktop), how you arrived (a referring site or campaign
-          tag), an anonymous session identifier, the game and question version, and the time. We do
+          tag), an anonymous session identifier, the site and question version, and the time. We do
           not collect your name, email, age, gender, or precise location, and we do not build a
           fingerprint or track you across other sites.
         </P>

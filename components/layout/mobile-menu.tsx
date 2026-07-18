@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { primaryNav, footerNav } from "@/data/navigation";
 import { getDictionary } from "@/locales";
+import { Logo } from "@/components/brand/logo";
 
 const dict = getDictionary("en");
 
@@ -31,7 +32,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
     >
       <div className="mx-auto flex h-full max-w-shell flex-col px-6 sm:px-8">
         <div className="flex h-16 items-center justify-between">
-          <span className="text-h3 text-ink">{dict.brand}</span>
+          <Logo size="header" />
           <button
             onClick={onClose}
             className="min-h-[44px] text-caption uppercase tracking-[0.14em] text-charcoal hover:text-ink"

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: `%s — ${siteSettings.brandName}`,
   },
   description:
-    "See What? is a project for looking before naming. Observe abstract forms, leave what you saw, and see how others saw them differently.",
+    "See What? is a place to see before naming. Observe an unfamiliar form, leave what you saw, and see how differently others saw it.",
   applicationName: siteSettings.brandName,
   openGraph: {
     type: "website",
@@ -27,6 +27,12 @@ export const metadata: Metadata = {
     description: "A project for looking before naming.",
   },
   robots: { index: true, follow: true },
+  /**
+   * No `icons` key on purpose. `app/favicon.ico`, `app/icon.svg` and
+   * `app/apple-icon.png` are Next.js file conventions — Next hashes them and
+   * injects the <link> tags itself. Declaring them here as well would produce
+   * duplicate, unhashed tags.
+   */
 };
 
 const websiteJsonLd = {

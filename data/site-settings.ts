@@ -4,8 +4,13 @@
  */
 export const siteSettings = {
   brandName: "See What?",
-  tagline: "Observation is a luxury.",
-  altTagline: "Stay with what you see.",
+  /**
+   * THE tagline. Used by every title, OGP and JSON-LD string — never retyped
+   * in a component. See What? is not defined as a game anywhere.
+   */
+  tagline: "A place to see before naming.",
+  /** Secondary brand line, for About and editorial contexts only. */
+  altTagline: "Where words fall short, observation begins.",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://see-what.example",
   animalsArchiveUrl:
     process.env.NEXT_PUBLIC_ANIMALS_ARCHIVE_URL ??

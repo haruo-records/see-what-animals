@@ -22,7 +22,7 @@ import { TextLink } from "@/components/ui/text-link";
 const dict = getDictionary("en");
 
 /**
- * `/` IS the game. Left column: the framed work, always in place. Right column:
+ * `/` IS the observation. Left column: the framed work, always in place. Right column:
  * only this changes. There is no "start" screen and no begin button — looking at
  * the work already is the observation, so the first question is present at once.
  * Submitting navigates to the record at /observations/[slug].

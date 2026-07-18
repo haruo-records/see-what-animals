@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { primaryNav } from "@/data/navigation";
+import { Logo } from "@/components/brand/logo";
 import { getDictionary } from "@/locales";
 import { MobileMenu } from "./mobile-menu";
 
@@ -22,10 +23,10 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-shell items-center justify-between px-6 sm:px-8">
         <Link
           href="/"
-          className="font-serif text-[1.0625rem] leading-none tracking-[0.01em] text-ink"
+          className="flex items-center text-ink"
           aria-label={`${dict.brand} — current observation`}
         >
-          {dict.brand}
+          <Logo size="header" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">

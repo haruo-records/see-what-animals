@@ -15,7 +15,7 @@ import { TextLink } from "@/components/ui/text-link";
 const dict = getDictionary("en");
 
 /**
- * The record for one observation, in the same shape as the game: left, the work;
+ * The record for one observation, in the same shape as the observation screen: left, the work;
  * right, what you saw and how the form was seen. Below, in a quiet reading column,
  * the minority acknowledgement, the names, a few notes, and the way back. Never a
  * dashboard — hairline bars, kept minorities, prose.
@@ -45,7 +45,7 @@ export function ObservationResult({
 
   return (
     <div className="flex flex-col gap-16">
-      {/* Top — same two columns as the game */}
+      {/* Top — same two columns as the observation screen */}
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
         <div className="w-full">
           {showSpecimen ? (

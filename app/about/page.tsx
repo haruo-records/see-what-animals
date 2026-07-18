@@ -8,7 +8,7 @@ import { ArrowLink } from "@/components/ui/arrow-link";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "See What? is a project for looking before naming. The forms it holds — called animals — are observed together, and seen differently by everyone who looks.",
+    "See What? is a place to see before naming. The forms it holds — called animals — are observed together, and seen differently by everyone who looks.",
 };
 
 /** A quiet section label. */
@@ -27,8 +27,12 @@ export default function AboutPage() {
       <PageShell width="reading">
         <Eyebrow>About</Eyebrow>
         <h1 className="mt-6 text-h1 font-normal leading-tight text-ink">
-          A project for looking before naming.
+          {siteSettings.tagline}
         </h1>
+        {/* Secondary brand line — About is the one place it appears. */}
+        <p className="mt-6 font-serif text-body-lg italic text-muted">
+          {siteSettings.altTagline}
+        </p>
 
         <Statement>See What? is a place to observe.</Statement>
         <Statement>

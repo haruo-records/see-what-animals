@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { footerNav } from "@/data/navigation";
 import { getDictionary } from "@/locales";
+import { Logo } from "@/components/brand/logo";
 import { PageShell } from "./page-shell";
 
 const dict = getDictionary("en");
@@ -12,7 +13,7 @@ export function SiteFooter() {
       <PageShell>
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-reading">
-            <p className="font-serif text-[1.0625rem] leading-none text-ink">{dict.brand}</p>
+            <Logo size="footer" />
             <p className="mt-4 text-caption text-muted">{dict.footer.rights}</p>
           </div>
 

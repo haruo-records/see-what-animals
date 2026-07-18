@@ -3,7 +3,7 @@
  * header/footer/menu. English-only.
  *
  * DELIBERATELY SMALL. The entrance offers only About / Shop (the wordmark is the
- * game). Contact, Privacy, and the archive live in the footer.
+ * current observation). Contact, Privacy, and the archive live in the footer.
  */
 export type NavItem = {
   label: string;

@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     await insertResponses(rows);
     return NextResponse.json({ ok: true, stored: true, count: rows.length });
   } catch (error) {
-    // Do not surface as a hard failure — the game must not break on save errors.
+    // Do not surface as a hard failure — the experience must not break on save errors.
     // eslint-disable-next-line no-console
     console.error("Failed to store observation", error);
     return NextResponse.json({ ok: false, stored: false, error: "store_failed" }, { status: 200 });
