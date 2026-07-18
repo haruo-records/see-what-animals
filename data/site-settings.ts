@@ -25,11 +25,8 @@ export const siteSettings = {
    * people arrive via SNS, so X / Instagram are added later once press or
    * word-of-mouth traffic grows.
    */
-  noteUrl: process.env.NEXT_PUBLIC_NOTE_URL ?? "https://note.com/",
-  substackUrl: process.env.NEXT_PUBLIC_SUBSTACK_URL ?? "https://substack.com/",
-
-  /** Quiet fallback contact on the Support page (optional). */
-  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "",
+  noteUrl: process.env.NEXT_PUBLIC_NOTE_URL ?? "https://note.com/haruo_harmoneer",
+  substackUrl: process.env.NEXT_PUBLIC_SUBSTACK_URL ?? "https://substack.com/@haruoharmoneer",
 
   /** Session clock. Change to alter how status is derived. */
   timezone: "Asia/Tokyo",

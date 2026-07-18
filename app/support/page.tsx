@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Divider } from "@/components/ui/divider";
 import { ArrowLink } from "@/components/ui/arrow-link";
 import { SupportOptions } from "@/components/support/support-options";
+import { ContactEmail } from "@/components/support/contact-email";
 
 export const metadata: Metadata = {
   title: "Support",
@@ -125,18 +126,11 @@ export default function SupportPage() {
           <SupportOptions idSuffix="bottom" />
         </div>
 
-        {siteSettings.supportEmail ? (
-          <p className="mt-10 text-caption leading-relaxed text-muted">
-            Prefer another way? Write to{" "}
-            <a
-              href={`mailto:${siteSettings.supportEmail}`}
-              className="border-b border-stone pb-px transition-colors hover:border-charcoal hover:text-charcoal"
-            >
-              {siteSettings.supportEmail}
-            </a>
-            .
-          </p>
-        ) : null}
+        {/* Contact — quiet, page-bottom, minimal. Not a primary path; just a
+            small muted line after everything else, with generous space above. */}
+        <div className="mt-24">
+          <ContactEmail />
+        </div>
       </PageShell>
     </section>
   );

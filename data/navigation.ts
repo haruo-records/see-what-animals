@@ -45,7 +45,11 @@ export const legalNav: NavItem[] = [
   { label: "Privacy", href: "/privacy", enabled: true },
 ];
 
-/** Footer-only utility. The archive is where the works themselves live. */
+/**
+ * Footer-only utility. Deliberately just the archive now — Contact moved to the
+ * foot of the Support page, and Privacy lives in the left drawer (legalNav), so
+ * neither is duplicated here.
+ */
 export const footerNav: NavItem[] = [
   {
     label: "animals Archive",
@@ -53,6 +57,4 @@ export const footerNav: NavItem[] = [
     external: true,
     enabled: true,
   },
-  { label: "Contact", href: "/contact", enabled: true },
-  { label: "Privacy", href: "/privacy", enabled: true },
 ];
