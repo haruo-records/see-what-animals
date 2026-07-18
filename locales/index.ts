@@ -1,11 +1,11 @@
 import { en, type Dictionary } from "./en";
-import { ja } from "./ja";
-import type { Locale } from "@/data/site-settings";
 
-const dictionaries: Record<Locale, Dictionary> = { en, ja };
-
-export function getDictionary(locale: Locale): Dictionary {
-  return dictionaries[locale] ?? en;
+/**
+ * English-only. getDictionary keeps its signature so existing callers
+ * (getDictionary("en")) are unchanged, but there is only one dictionary.
+ */
+export function getDictionary(_locale?: string): Dictionary {
+  return en;
 }
 
 export type { Dictionary };
