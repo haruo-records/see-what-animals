@@ -56,6 +56,17 @@ export function SupportOptions({ idSuffix = "" }: { idSuffix?: string }) {
           {oneTimeTiers.map((t) => (
             <Tier key={t.id} tier={t} />
           ))}
+          {/* Custom amount is a ONE-TIME Stripe payment (customer chooses price),
+              so it sits here after ¥100 / ¥300, styled identically to the fixed
+              tiers — an ordinary enabled link, never disabled/greyed. */}
+          <a
+            href={customSupportHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${chipBase} border border-stone text-charcoal hover:border-charcoal hover:text-ink`}
+          >
+            Custom amount
+          </a>
         </div>
       </div>
 
@@ -66,27 +77,6 @@ export function SupportOptions({ idSuffix = "" }: { idSuffix?: string }) {
             <Tier key={t.id} tier={t} />
           ))}
         </div>
-
-        <div className="mt-3">
-          {customSupportHref ? (
-            <a
-              href={customSupportHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${chipBase} border border-stone text-charcoal hover:border-charcoal hover:text-ink`}
-            >
-              Custom amount
-            </a>
-          ) : (
-            <span
-              className={`${chipBase} cursor-not-allowed border border-stone text-stone`}
-              aria-disabled="true"
-              title="Not available yet"
-            >
-              Custom amount
-            </span>
-          )}
-        </div>
       </div>
 
       {!supportConfigured ? (
@@ -95,8 +85,8 @@ export function SupportOptions({ idSuffix = "" }: { idSuffix?: string }) {
         </p>
       ) : (
         <p className="mt-8 text-caption leading-relaxed text-muted">
-          One-time from ¥100, or monthly from ¥500. Payments are handled securely by Stripe; you can
-          stop a monthly contribution at any time.
+          One-time support from ¥100, including a custom amount, or monthly support from ¥500.
+          Payments are handled securely by Stripe; you can stop a monthly contribution at any time.
         </p>
       )}
       {/* idSuffix reserved for future per-instance anchors/analytics. */}

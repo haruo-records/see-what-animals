@@ -44,9 +44,7 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <p className="mt-16 text-caption text-muted">
-          © {new Date().getFullYear()} {dict.brand}
-        </p>
+        <p className="mt-16 text-caption text-muted">© See What? by HARMONEER.</p>
       </PageShell>
     </footer>
   );

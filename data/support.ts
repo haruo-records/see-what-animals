@@ -81,8 +81,14 @@ export const monthlyTiers: SupportTier[] = [
   },
 ];
 
-/** A single "customer chooses price" Payment Link (monthly), for Custom amount. */
-export const customSupportHref: string = process.env.NEXT_PUBLIC_STRIPE_CUSTOM ?? "";
+/**
+ * A single "customer chooses price" Payment Link, for Custom amount.
+ * NOTE: Stripe custom-amount links are ONE-TIME payments, so Custom amount is
+ * shown in the One-time group (not Monthly). This is a PRODUCTION Payment Link;
+ * NEXT_PUBLIC_STRIPE_CUSTOM, if set, still overrides it.
+ */
+export const customSupportHref: string =
+  process.env.NEXT_PUBLIC_STRIPE_CUSTOM ?? "https://buy.stripe.com/4gMeVf2CBcDlb4z66lcV207";
 
 /** True once at least one tier (or the custom link) is configured. */
 export const supportConfigured: boolean =

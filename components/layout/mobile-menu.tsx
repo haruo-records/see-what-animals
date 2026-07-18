@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { playNav, utilityNav, legalNav, type NavItem } from "@/data/navigation";
 import { getDictionary } from "@/locales";
-import { Logo } from "@/components/brand/logo";
 
 const dict = getDictionary("en");
 
@@ -92,10 +91,11 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
       />
       {/* Left panel */}
       <div className="absolute inset-y-0 left-0 flex w-[86%] max-w-[380px] flex-col bg-paper px-6 py-0 shadow-placed animate-rise-in sm:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" onClick={onClose} className="flex items-center text-ink" aria-label={dict.brand}>
-            <Logo size="header" />
-          </Link>
+        {/* Top bar holds only the Close control now — the wordmark was removed so
+            the drawer stays quiet and the menu items are the focus. The Close
+            button keeps its usual top-right position and the h-16 height matches
+            the site header, so no empty gap is left behind. */}
+        <div className="flex h-16 items-center justify-end">
           <button
             onClick={onClose}
             className="min-h-[44px] text-caption uppercase tracking-[0.14em] text-charcoal hover:text-ink"
@@ -104,7 +104,7 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
           </button>
         </div>
 
-        <nav className="mt-8 flex flex-1 flex-col" aria-label="Primary">
+        <nav className="mt-6 flex flex-1 flex-col" aria-label="Primary">
           <p className="u-label mb-5">Play</p>
           <div className="flex flex-col gap-5">
             {playNav.map((item) => (
