@@ -8,6 +8,9 @@ import type { ObservationResult } from "@/types";
  *
  * When a real datastore is connected, result-service.ts reads from it instead
  * and this file can be removed.
+ *
+ * Questions: q-see (What do you see?), q-stands (What stands out?),
+ * q-name (word, not aggregated here).
  */
 export const mockResults: Record<string, ObservationResult> = {
   "observation-023": {
@@ -18,9 +21,9 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-see", choiceId: "c-machine", count: 2, percentage: 29 },
       { questionId: "q-see", choiceId: "c-plant", count: 1, percentage: 14 },
       { questionId: "q-see", choiceId: "c-other", count: 1, percentage: 14 },
-      { questionId: "q-move", choiceId: "m-drifts", count: 4, percentage: 57 },
-      { questionId: "q-move", choiceId: "m-waits", count: 2, percentage: 29 },
-      { questionId: "q-move", choiceId: "m-creeps", count: 1, percentage: 14 },
+      { questionId: "q-stands", choiceId: "st-shape", count: 4, percentage: 57 },
+      { questionId: "q-stands", choiceId: "st-part", count: 2, percentage: 29 },
+      { questionId: "q-stands", choiceId: "st-surface", count: 1, percentage: 14 },
     ],
     offeredNames: ["Slow one", "Kettle", "Skater"],
     selectedNotes: [
@@ -38,10 +41,10 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-see", choiceId: "c-machine", count: 67, percentage: 27 },
       { questionId: "q-see", choiceId: "c-plant", count: 45, percentage: 18 },
       { questionId: "q-see", choiceId: "c-other", count: 32, percentage: 13 },
-      { questionId: "q-move", choiceId: "m-waits", count: 121, percentage: 49 },
-      { questionId: "q-move", choiceId: "m-drifts", count: 79, percentage: 32 },
-      { questionId: "q-move", choiceId: "m-creeps", count: 30, percentage: 12 },
-      { questionId: "q-move", choiceId: "m-other", count: 18, percentage: 7 },
+      { questionId: "q-stands", choiceId: "st-shape", count: 121, percentage: 49 },
+      { questionId: "q-stands", choiceId: "st-part", count: 79, percentage: 32 },
+      { questionId: "q-stands", choiceId: "st-surface", count: 30, percentage: 12 },
+      { questionId: "q-stands", choiceId: "st-other", count: 18, percentage: 7 },
     ],
     offeredNames: ["Watcher", "Low tide", "The keeper", "The listener"],
     selectedNotes: [
@@ -59,9 +62,9 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-see", choiceId: "c-bird", count: 61, percentage: 28 },
       { questionId: "q-see", choiceId: "c-other", count: 39, percentage: 18 },
       { questionId: "q-see", choiceId: "c-machine", count: 28, percentage: 13 },
-      { questionId: "q-move", choiceId: "m-creeps", count: 96, percentage: 44 },
-      { questionId: "q-move", choiceId: "m-drifts", count: 72, percentage: 33 },
-      { questionId: "q-move", choiceId: "m-waits", count: 50, percentage: 23 },
+      { questionId: "q-stands", choiceId: "st-shape", count: 96, percentage: 44 },
+      { questionId: "q-stands", choiceId: "st-part", count: 72, percentage: 33 },
+      { questionId: "q-stands", choiceId: "st-surface", count: 50, percentage: 23 },
     ],
     offeredNames: ["Sprout", "Lighthouse"],
   },

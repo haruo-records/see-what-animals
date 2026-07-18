@@ -7,8 +7,12 @@ const nextConfig = {
     remotePatterns: [],
   },
   async redirects() {
-    // Home and the game are one page now; the old /observe URL folds into /.
-    return [{ source: "/observe", destination: "/", permanent: true }];
+    return [
+      // Home and the game are one page now; the old /observe URL folds into /.
+      { source: "/observe", destination: "/", permanent: true },
+      // About was retired; the profile now lives on the Support page.
+      { source: "/about", destination: "/support", permanent: true },
+    ];
   },
 };
 

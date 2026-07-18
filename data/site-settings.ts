@@ -16,9 +16,20 @@ export const siteSettings = {
     process.env.NEXT_PUBLIC_ANIMALS_ARCHIVE_URL ??
     "https://haruo-records.github.io/animals-site/",
 
-  /** External project links, surfaced quietly at the foot of the About page. */
+  /** The person behind the project — shown in the Support page profile. */
+  creatorName: "HARUO",
+
+  /**
+   * External project links, surfaced quietly under the profile on the Support
+   * page ("Continue exploring"). SNS is intentionally omitted for now — today
+   * people arrive via SNS, so X / Instagram are added later once press or
+   * word-of-mouth traffic grows.
+   */
   noteUrl: process.env.NEXT_PUBLIC_NOTE_URL ?? "https://note.com/",
   substackUrl: process.env.NEXT_PUBLIC_SUBSTACK_URL ?? "https://substack.com/",
+
+  /** Quiet fallback contact on the Support page (optional). */
+  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "",
 
   /** Session clock. Change to alter how status is derived. */
   timezone: "Asia/Tokyo",

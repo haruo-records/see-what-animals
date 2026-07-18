@@ -2,7 +2,13 @@ import type { ObservationQuestion } from "@/types";
 
 /**
  * Shared question bank. Sessions reference questions by id (questionIds).
- * Questions are never scored. free-text questions render as a quiet note field.
+ * Questions are never scored. `word` renders as a quiet single-word field.
+ *
+ * THE THREE QUESTIONS (fixed cognitive sequence):
+ *   1. What do you see?      — first perception
+ *   2. What stands out?      — what impression remains
+ *   3. What do you call it?  — giving it a name
+ * (see → what stays with you → naming)
  */
 export const questions: ObservationQuestion[] = [
   {
@@ -19,16 +25,16 @@ export const questions: ObservationQuestion[] = [
     ],
   },
   {
-    id: "q-move",
+    id: "q-stands",
     version: "1",
     type: "single-choice",
-    question: "How does it move?",
+    question: "What stands out?",
     required: false,
     choices: [
-      { id: "m-drifts", label: "It drifts" },
-      { id: "m-creeps", label: "It creeps" },
-      { id: "m-waits", label: "It waits" },
-      { id: "m-other", label: "Some other way" },
+      { id: "st-shape", label: "Its shape" },
+      { id: "st-part", label: "One part of it" },
+      { id: "st-surface", label: "Its surface" },
+      { id: "st-other", label: "Something else" },
     ],
   },
   {

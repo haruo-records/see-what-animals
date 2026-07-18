@@ -2,64 +2,59 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { primaryNav } from "@/data/navigation";
 import { Logo } from "@/components/brand/logo";
 import { getDictionary } from "@/locales";
-import { MobileMenu } from "./mobile-menu";
+import { SiteNav } from "./mobile-menu";
 
 const dict = getDictionary("en");
 
 /**
- * Quiet header. The wordmark returns to `/` — the current observation. Only two
- * secondary destinations (About, Shop); everything else lives in the footer.
+ * Quiet header, three parts (learned from Wordle / NYT Games):
+ *   left   — the menu button, opening the left navigation drawer,
+ *   centre — the wordmark, returning to `/` (the current observation),
+ *   right  — Support, always present. Like a quiet "Subscribe": part of the
+ *            brand, never an ad.
+ * Everything else (Play, Archive, Shop, Privacy) lives in the drawer.
  */
 export function SiteHeader() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const [navOpen, setNavOpen] = useState(false);
 
   return (
     <header className="relative z-40">
-      <div className="mx-auto flex h-16 max-w-shell items-center justify-between px-6 sm:px-8">
+      <div className="mx-auto grid h-16 max-w-shell grid-cols-[1fr_auto_1fr] items-center px-6 sm:px-8">
+        <div className="justify-self-start">
+          <button
+            onClick={() => setNavOpen(true)}
+            className="-ml-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-charcoal transition-colors hover:text-ink"
+            aria-haspopup="dialog"
+            aria-expanded={navOpen}
+            aria-label={dict.nav.menu}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" fill="none">
+              <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
         <Link
           href="/"
-          className="flex items-center text-ink"
+          className="flex items-center justify-self-center text-ink"
           aria-label={`${dict.brand} — current observation`}
         >
           <Logo size="header" />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
-          {primaryNav
-            .filter((n) => n.enabled)
-            .map((item) => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={
-                    "text-caption uppercase tracking-[0.12em] transition-colors " +
-                    (active ? "text-ink" : "text-charcoal hover:text-ink")
-                  }
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-        </nav>
-
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="min-h-[44px] text-caption uppercase tracking-[0.14em] text-charcoal hover:text-ink md:hidden"
-          aria-haspopup="dialog"
-          aria-expanded={menuOpen}
-        >
-          {dict.nav.menu}
-        </button>
+        <div className="justify-self-end">
+          <Link
+            href="/support"
+            className="inline-flex min-h-[44px] items-center text-caption uppercase tracking-[0.14em] text-charcoal transition-colors hover:text-ink"
+          >
+            Support
+          </Link>
+        </div>
       </div>
 
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <SiteNav open={navOpen} onClose={() => setNavOpen(false)} />
     </header>
   );
 }

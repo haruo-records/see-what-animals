@@ -28,7 +28,7 @@ export default function HomePage() {
   if (!animal) notFound();
 
   return (
-    <section className="py-14 sm:py-20 lg:py-24">
+    <section className="py-10 sm:py-14 lg:py-16">
       <PageShell width="shell">
         <ObservationExperience
           session={session}

@@ -9,7 +9,7 @@ const dict = getDictionary("en");
 /** A quiet footer. Everything non-essential lives here, not in the header. */
 export function SiteFooter() {
   return (
-    <footer className="mt-40 border-t border-stone py-16">
+    <footer className="mt-24 border-t border-stone py-12">
       <PageShell>
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-reading">

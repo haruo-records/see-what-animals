@@ -6,7 +6,7 @@ import { products } from "@/data/products";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteSettings.siteUrl.replace(/\/$/, "");
-  const staticRoutes = ["", "/observations", "/about", "/field-notes", "/shop", "/contact", "/privacy"];
+  const staticRoutes = ["", "/observations", "/support", "/field-notes", "/shop", "/contact", "/privacy"];
 
   const staticEntries = staticRoutes.map((path) => ({
     url: `${base}${path}`,

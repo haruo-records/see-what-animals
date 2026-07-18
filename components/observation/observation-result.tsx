@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/observation/session-status";
 import { LiveDistribution } from "./live-distribution";
 import { ArchiveLink } from "./archive-link";
 import { SpecimenView } from "./specimen-view";
+import { ShareResult } from "./share-result";
 import { Divider } from "@/components/ui/divider";
 import { TextLink } from "@/components/ui/text-link";
 
@@ -17,8 +18,8 @@ const dict = getDictionary("en");
 /**
  * The record for one observation, in the same shape as the observation screen: left, the work;
  * right, what you saw and how the form was seen. Below, in a quiet reading column,
- * the minority acknowledgement, the names, a few notes, and the way back. Never a
- * dashboard — hairline bars, kept minorities, prose.
+ * the minority acknowledgement, a spoiler-free share, the names, a few notes, and
+ * the way back. Never a dashboard — hairline bars, kept minorities, prose.
  */
 export function ObservationResult({
   session,
@@ -44,9 +45,9 @@ export function ObservationResult({
     .map((q) => <LiveDistribution key={q.id} question={q} sessionId={session.id} />);
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-12">
       {/* Top — same two columns as the observation screen */}
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
         <div className="w-full">
           {showSpecimen ? (
             <div className="mx-auto w-full max-w-[600px] lg:mx-0">
@@ -56,19 +57,29 @@ export function ObservationResult({
         </div>
 
         <div className="w-full lg:pt-2">
+          <p className="u-label mb-6">Observation {session.observationNumber}</p>
           {yourLabel ? (
-            <div className="mb-12">
+            <div className="mb-10">
               <p className="u-label mb-3">{dict.result.youSaw}</p>
               <p className="text-h2 font-normal text-ink">{yourLabel}</p>
             </div>
           ) : null}
-          <div className="flex flex-col gap-12">{distributions}</div>
+          <div className="flex flex-col gap-10">{distributions}</div>
         </div>
       </div>
 
       {/* Below — a quiet reading column */}
       <div className="mx-auto w-full max-w-reading">
         <p className="text-body-lg text-charcoal">{dict.result.someoneDiff}</p>
+
+        <div className="mt-8">
+          <ShareResult
+            observationNumber={session.observationNumber}
+            slug={session.slug}
+            sessionId={session.id}
+            questionId={primaryQuestion?.id}
+          />
+        </div>
 
         {result.offeredNames && result.offeredNames.length > 0 ? (
           <div className="mt-12">

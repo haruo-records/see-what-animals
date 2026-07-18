@@ -4,9 +4,10 @@ import { SpecimenView } from "@/components/observation/specimen-view";
 import { formatDate } from "@/lib/observation/session-status";
 
 /**
- * A past observation, as a line in a quiet register: the work, what it was seen
- * as (its description), and when it closed. No number, no counts — those are
- * management data. Opening it leads to the record, never a work-detail page.
+ * A past observation, as a line in a quiet register: the work, its Observation
+ * number, what it was seen as (its description), and when it closed. The counts
+ * stay management data — never shown. Opening it leads to the full record
+ * (distribution, names, dates), never a work-detail page.
  */
 export function ObservationListItem({
   session,
@@ -25,6 +26,7 @@ export function ObservationListItem({
         <SpecimenView animal={animal} size="card" />
       </div>
       <div>
+        <p className="u-label mb-2">Observation {session.observationNumber}</p>
         <p className="text-body-lg text-ink transition-colors group-hover:text-charcoal">
           {animal.alt}
         </p>
