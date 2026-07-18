@@ -1,23 +1,19 @@
-export type LocalizedText = {
-  en: string;
-  ja: string;
-};
-
 export type ObservationQuestionType =
   | "single-choice"
   | "multiple-choice"
   | "free-text"
+  | "word"
   | "scale";
 
 export type ObservationChoice = {
   id: string;
-  label: LocalizedText;
+  label: string;
 };
 
 export type ObservationQuestion = {
   id: string;
   type: ObservationQuestionType;
-  question: LocalizedText;
+  question: string;
   choices?: ObservationChoice[];
   required: boolean;
   maxLength?: number;

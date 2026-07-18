@@ -10,7 +10,7 @@ export type ObservationSession = {
   observationNumber: string;
   animalId: string;
   title?: string;
-  intro?: { en: string; ja: string };
+  intro?: string;
   /** ISO 8601. */
   startsAt: string;
   closesAt: string;
