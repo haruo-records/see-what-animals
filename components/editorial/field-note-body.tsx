@@ -9,7 +9,7 @@ export function FieldNoteBody({ blocks }: { blocks: FieldNoteBlock[] }) {
         switch (block.type) {
           case "heading":
             return (
-              <h2 key={i} className="mt-16 text-h3 font-normal text-ink">
+              <h2 key={i} className="mt-12 text-h3 font-normal text-ink">
                 {block.text}
               </h2>
             );
@@ -23,7 +23,7 @@ export function FieldNoteBody({ blocks }: { blocks: FieldNoteBlock[] }) {
             return (
               <blockquote
                 key={i}
-                className="my-12 border-l border-stone pl-6 font-serif text-h3 italic text-charcoal"
+                className="my-9 border-l border-stone pl-6 font-serif text-h3 italic text-charcoal"
               >
                 {block.text}
               </blockquote>

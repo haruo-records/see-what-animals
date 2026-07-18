@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function ShopPage() {
   return (
-    <section className="py-24">
+    <section className="py-18">
       <PageShell width="work">
         <SectionHeading as="h1" eyebrow="Objects & editions" title="Shop" className="mb-8" />
         <p className="mb-20 max-w-reading text-body-lg text-charcoal">

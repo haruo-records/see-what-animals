@@ -46,7 +46,7 @@ export default function ObservationResultPage({ params }: { params: { slug: stri
   };
 
   return (
-    <section className="py-14 sm:py-20">
+    <section className="py-10 sm:py-14">
       <PageShell width="shell">
         <ObservationResult
           session={session}

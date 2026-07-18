@@ -29,10 +29,10 @@ export default function ArchivePage() {
     }));
 
   return (
-    <section className="py-16 sm:py-20">
+    <section className="py-12 sm:py-14">
       <PageShell width="work">
-        <SectionHeading as="h1" eyebrow="The record of observations" title="Archive" className="mb-8" />
-        <p className="mb-14 max-w-reading text-body-lg text-charcoal">
+        <SectionHeading as="h1" eyebrow="The record of observations" title="Archive" className="mb-6" />
+        <p className="mb-10 max-w-reading text-body-lg text-charcoal">
           A record of past observations. Each entry is an observation, not a work: the form, how it
           was seen, and the names it was given during its time open. The works themselves live in
           the animals archive.

@@ -49,9 +49,9 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
   };
 
   return (
-    <section className="py-24">
+    <section className="py-18">
       <PageShell width="work">
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <ProductGallery images={product.images} title={product.title} />
           <ProductInformation product={product} />
         </div>

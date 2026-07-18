@@ -12,12 +12,13 @@ import { siteSettings } from "@/data/site-settings";
  * make it tower over the 16px type it sits beside. Width follows automatically.
  */
 const sizes = {
-  /** Header and mobile-menu bar — reads at the same optical weight as the old 17px type. */
-  header: "h-[1.05rem] sm:h-[1.15rem]",
-  /** Footer — deliberately a touch larger; it is the last thing on the page. */
-  footer: "h-[1.35rem]",
-  /** Loading screen. Quiet, centred. */
-  loading: "h-[1.5rem]",
+  /** Header and drawer. ×1.83 — 33.6px inside the 64px bar, so the mark reads as
+      a logo rather than as a line of type, with the bar height untouched. */
+  header: "h-[1.925rem] sm:h-[2.1rem]",
+  /** Footer. ×1.85 — the last thing on the page, so it may sit a little larger. */
+  footer: "h-[2.5rem]",
+  /** Loading screen. ×1.83. */
+  loading: "h-[2.75rem]",
 } as const;
 
 export type LogoSize = keyof typeof sizes;

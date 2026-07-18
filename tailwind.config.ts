@@ -48,6 +48,9 @@ const config: Config = {
       subtle: "0 1px 4px rgba(30,30,25,0.05)",
     },
     extend: {
+      /* One extra step (18 = 4.5rem). Tailwind jumps 16 → 20 → 24, which forces
+         a −33% or −17% cut where −25% is wanted. Nothing else is overridden. */
+      spacing: { 18: "4.5rem" },
       maxWidth: {
         shell: "1280px",
         reading: "720px",

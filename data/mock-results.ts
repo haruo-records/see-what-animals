@@ -1,7 +1,13 @@
 import type { ObservationResult } from "@/types";
 
 /**
- * MOCK RESULTS — placeholder distributions for the initial build.
+ * MOCK RESULTS — placeholder DISTRIBUTIONS for the initial build.
+ *
+ * `offeredNames` and `selectedNotes` are deliberately absent. Those are words
+ * real observers left; inventing them would put fabricated human sentences on a
+ * site whose whole subject is how people actually see. The UI shows "No names
+ * yet." / "No observations yet." until the datastore returns real ones.
+ *
  * These stand in for a future backend (see lib/observation/result-service.ts and
  * README). Percentages are pre-computed to avoid implying more precision than
  * exists. Small-N sessions are shown honestly as "still forming".
@@ -25,11 +31,6 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-stands", choiceId: "st-part", count: 2, percentage: 29 },
       { questionId: "q-stands", choiceId: "st-surface", count: 1, percentage: 14 },
     ],
-    offeredNames: ["Slow one", "Kettle", "Skater"],
-    selectedNotes: [
-      { id: "n1", text: "It looked like it was about to leave.", language: "en" },
-      { id: "n2", text: "I kept looking at the edge of it.", language: "en" },
-    ],
   },
   "observation-022": {
     sessionId: "observation-022",
@@ -46,11 +47,6 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-stands", choiceId: "st-surface", count: 30, percentage: 12 },
       { questionId: "q-stands", choiceId: "st-other", count: 18, percentage: 7 },
     ],
-    offeredNames: ["Watcher", "Low tide", "The keeper", "The listener"],
-    selectedNotes: [
-      { id: "n3", text: "Someone left before I did.", language: "en" },
-      { id: "n4", text: "It did not move, but it seemed to be waiting.", language: "en" },
-    ],
   },
   "observation-021": {
     sessionId: "observation-021",
@@ -66,7 +62,6 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-stands", choiceId: "st-part", count: 72, percentage: 33 },
       { questionId: "q-stands", choiceId: "st-surface", count: 50, percentage: 23 },
     ],
-    offeredNames: ["Sprout", "Lighthouse"],
   },
   "observation-020": {
     sessionId: "observation-020",
@@ -79,7 +74,6 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-see", choiceId: "c-bird", count: 33, percentage: 21 },
       { questionId: "q-see", choiceId: "c-machine", count: 21, percentage: 14 },
     ],
-    offeredNames: ["Folded", "Rest", "Quiet thing"],
   },
 };
 

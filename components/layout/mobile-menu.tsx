@@ -104,25 +104,25 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
           </button>
         </div>
 
-        <nav className="mt-6 flex flex-1 flex-col" aria-label="Primary">
-          <p className="u-label mb-5">Play</p>
-          <div className="flex flex-col gap-5">
+        <nav className="mt-5 flex flex-1 flex-col" aria-label="Primary">
+          <p className="u-label mb-4">Play</p>
+          <div className="flex flex-col gap-4">
             {playNav.map((item) => (
               <Item key={item.href} item={item} />
             ))}
           </div>
 
-          <hr className="my-8 border-0 border-t border-stone" />
+          <hr className="my-6 border-0 border-t border-stone" />
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             {utilityNav.filter((n) => n.enabled).map((item) => (
               <Item key={item.href} item={item} />
             ))}
           </div>
 
-          <hr className="my-8 border-0 border-t border-stone" />
+          <hr className="my-6 border-0 border-t border-stone" />
 
-          <div className="mt-auto flex flex-col gap-3 pb-12">
+          <div className="mt-auto flex flex-col gap-3 pb-8">
             {legalNav.filter((n) => n.enabled).map((item) => (
               <Link
                 key={item.href}

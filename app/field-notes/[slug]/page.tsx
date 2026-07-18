@@ -36,7 +36,7 @@ export default function FieldNoteDetailPage({ params }: { params: { slug: string
   };
 
   return (
-    <article className="py-24">
+    <article className="py-18">
       <PageShell width="reading">
         <p className="u-label">{note.category}</p>
         <h1 className="mt-6 text-h1 font-normal text-ink">{note.title}</h1>

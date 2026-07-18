@@ -15,7 +15,7 @@ export function Figure({
   caption?: string;
 }) {
   return (
-    <figure className="my-12">
+    <figure className="my-9">
       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-plaster">
         {imageUrl ? (
           <Image src={imageUrl} alt={alt} fill sizes="720px" className="object-contain p-8" />

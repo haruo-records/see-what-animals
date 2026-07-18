@@ -19,7 +19,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 }
 /** A statement paragraph — short, with air around it. */
 function Statement({ children }: { children: ReactNode }) {
-  return <p className="mt-6 text-body-lg leading-relaxed text-charcoal">{children}</p>;
+  return <p className="mt-5 text-body-lg leading-relaxed text-charcoal">{children}</p>;
 }
 
 /**
@@ -28,11 +28,14 @@ function Statement({ children }: { children: ReactNode }) {
  * support in between. Explanation comes *after* the experience — this page is
  * read once someone has already looked.
  *
- *   Support → Choose your support → Concept → Profile → Why support → Choose your support
+ *   Support → [tiers] → Concept → Profile → Why support → [tiers]
+ *
+ * The tier blocks carry no "Choose your support" label: ONE-TIME / MONTHLY
+ * already name themselves, and the heading only added a line to scroll past.
  */
 export default function SupportPage() {
   return (
-    <section className="py-16 sm:py-24">
+    <section className="py-12 sm:py-18">
       <PageShell width="reading">
         {/* Header */}
         <Eyebrow>Support</Eyebrow>
@@ -44,12 +47,11 @@ export default function SupportPage() {
         </p>
 
         {/* Choose your support — first */}
-        <div className="mt-12">
-          <p className="u-label mb-6">Choose your support</p>
+        <div className="mt-9">
           <SupportOptions idSuffix="top" />
         </div>
 
-        <Divider className="my-16" />
+        <Divider className="my-12" />
 
         {/* Concept */}
         <Eyebrow>Concept</Eyebrow>
@@ -65,7 +67,7 @@ export default function SupportPage() {
           See What? is where they are observed together. animals is where they are kept.
         </Statement>
 
-        <Divider className="my-16" />
+        <Divider className="my-12" />
 
         {/* Profile */}
         <Eyebrow>Profile</Eyebrow>
@@ -76,7 +78,7 @@ export default function SupportPage() {
           many, not the one who decides what a thing is.
         </Statement>
 
-        <div className="mt-10">
+        <div className="mt-8">
           <p className="u-label mb-4">Continue exploring</p>
           <ul className="flex flex-col gap-4">
             <li>
@@ -108,7 +110,7 @@ export default function SupportPage() {
           </ul>
         </div>
 
-        <Divider className="my-16" />
+        <Divider className="my-12" />
 
         {/* Why support? */}
         <Eyebrow>Why support?</Eyebrow>
@@ -121,14 +123,13 @@ export default function SupportPage() {
         </Statement>
 
         {/* Choose your support — last */}
-        <div className="mt-12">
-          <p className="u-label mb-6">Choose your support</p>
+        <div className="mt-9">
           <SupportOptions idSuffix="bottom" />
         </div>
 
         {/* Contact — quiet, page-bottom, minimal. Not a primary path; just a
             small muted line after everything else, with generous space above. */}
-        <div className="mt-24">
+        <div className="mt-16">
           <ContactEmail />
         </div>
       </PageShell>

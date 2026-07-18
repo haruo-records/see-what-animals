@@ -9,12 +9,13 @@ const dict = getDictionary("en");
 /** A quiet footer. Everything non-essential lives here, not in the header. */
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-stone py-12">
+    <footer className="mt-16 border-t border-stone py-9">
       <PageShell>
-        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+          {/* The mark alone. The old "All works remain in the animals archive."
+              line said what the archive link already says. */}
           <div className="max-w-reading">
             <Logo size="footer" />
-            <p className="mt-4 text-caption text-muted">{dict.footer.rights}</p>
           </div>
 
           <nav className="flex flex-col gap-3" aria-label="Footer">
@@ -44,7 +45,7 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <p className="mt-16 text-caption text-muted">© See What? by HARMONEER.</p>
+        <p className="mt-10 text-caption text-muted">© See What? by HARMONEER.</p>
       </PageShell>
     </footer>
   );

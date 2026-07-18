@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 /**
  * CONTACT — the single, quiet contact point at the foot of the Support page.
- * Deliberately understated: not a heading, not a button, not a card; just a small
- * muted line for the few who look for it.
+ * Deliberately understated: not a heading, not a button, not a card, and not
+ * even a "Contact:" label — an address on its own already reads as one.
  *
  * The address is assembled from character codes at runtime, so the literal
  * "…@gmail.com" string never appears in the HTML source or the JS bundle as
@@ -27,7 +27,6 @@ export function ContactEmail() {
 
   return (
     <p className="text-caption text-muted">
-      Contact:{" "}
       {address ? (
         <a
           href={`mailto:${address}`}

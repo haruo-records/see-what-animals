@@ -16,7 +16,7 @@ export default function FieldNotesPage() {
   );
 
   return (
-    <section className="py-24">
+    <section className="py-18">
       <PageShell width="work">
         <SectionHeading
           as="h1"

@@ -40,12 +40,15 @@ export function ObservationResult({
   const yourPrimary = primaryQuestion && yourAnswers ? yourAnswers[primaryQuestion.id] : undefined;
   const yourLabel = primaryQuestion?.choices?.find((c) => c.id === yourPrimary)?.label;
 
+  const names = result.offeredNames ?? [];
+  const notes = result.selectedNotes ?? [];
+
   const distributions = questions
     .filter((q) => q.type === "single-choice")
     .map((q) => <LiveDistribution key={q.id} question={q} sessionId={session.id} />);
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-9">
       {/* Top — same two columns as the observation screen */}
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
         <div className="w-full">
@@ -81,36 +84,44 @@ export function ObservationResult({
           />
         </div>
 
-        {result.offeredNames && result.offeredNames.length > 0 ? (
-          <div className="mt-12">
-            <p className="u-label mb-4">{dict.result.names}</p>
-            <p className="text-h3 font-normal text-charcoal">{result.offeredNames.join("  ·  ")}</p>
-          </div>
-        ) : null}
+        {/* Names and notes are things real observers left. They are never
+            invented for display: when none exist, the section says so plainly
+            rather than showing a plausible-looking example. */}
+        <div className="mt-9">
+          <p className="u-label mb-4">{dict.result.names}</p>
+          {names.length > 0 ? (
+            <p className="text-h3 font-normal text-charcoal">{names.join("  ·  ")}</p>
+          ) : (
+            <p className="text-body-lg text-muted">{dict.result.noNames}</p>
+          )}
+        </div>
 
-        {result.selectedNotes && result.selectedNotes.length > 0 ? (
-          <div className="mt-12">
-            <p className="u-label mb-4">{dict.result.notes}</p>
+        <div className="mt-9">
+          <p className="u-label mb-4">{dict.result.notes}</p>
+          {notes.length > 0 ? (
             <ul className="flex flex-col gap-4">
-              {result.selectedNotes.map((n) => (
+              {notes.map((n) => (
                 <li key={n.id} className="text-body-lg text-charcoal" lang={n.language}>
                   “{n.text}”
                 </li>
               ))}
             </ul>
-          </div>
-        ) : null}
+          ) : (
+            <p className="text-body-lg text-muted">{dict.result.noNotes}</p>
+          )}
+        </div>
 
-        <Divider className="my-12" />
+        <Divider className="my-9" />
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
           <p className="text-caption text-muted">
             {formatDate(session.startsAt)} — {formatDate(session.closesAt)}
           </p>
           <ArchiveLink animal={animal} observationId={session.id} />
+          {/* Field Notes has no role yet; the route and data remain, but the
+              link is out of the UI. Restore this line to bring it back. */}
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:gap-8">
             <TextLink href="/observations">{dict.result.past}</TextLink>
-            <TextLink href="/field-notes">{dict.result.fieldNotes}</TextLink>
           </div>
         </div>
       </div>

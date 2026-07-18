@@ -14,7 +14,7 @@ export const en = {
     enter: "Enter the observation",
     sections: {
       current: "Current observation",
-      past: "Previous observations",
+      past: "Archive",
       about: "About the project",
       fieldNotes: "Field Notes",
       objects: "Objects & Paper Studies",
@@ -49,9 +49,14 @@ export const en = {
     initial: "Initial observation",
     allTime: "All-time observation",
     names: "Names it was given",
+    /** Shown when no name has been offered yet. Never a fabricated example. */
+    noNames: "No names yet.",
     notes: "A few observations",
+    /** Shown when no observer has left a note yet. */
+    noNotes: "No observations yet.",
     archive: "View in animals archive",
-    past: "Previous observations",
+    past: "Archive",
+    /** Retained for a possible future return of Field Notes; unused in the UI. */
     fieldNotes: "Field Notes",
     noAnswer: "No answer is final.",
   },
@@ -61,7 +66,9 @@ export const en = {
     external: "opens the animals archive",
   },
   footer: {
-    tagline: "A project for looking before naming.",
+    tagline: "A place to see before naming.",
+    /** Retained for the type; no longer rendered — the footer is the mark and
+        the archive link, nothing else. */
     rights: "All works remain in the animals archive.",
   },
 };

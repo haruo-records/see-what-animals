@@ -11,7 +11,7 @@ const email = "hello@see-what.example"; // Replace with the real address — see
 
 export default function ContactPage() {
   return (
-    <section className="py-24">
+    <section className="py-18">
       <PageShell width="reading">
         <p className="u-label">Contact</p>
         <h1 className="mt-6 text-h1 font-normal text-ink">Get in touch</h1>
@@ -27,7 +27,7 @@ export default function ContactPage() {
             {email}
           </a>
         </div>
-        <div className="mt-16">
+        <div className="mt-12">
           <p className="u-label mb-4">Elsewhere</p>
           <ExternalLink href="https://haruo-records.github.io/animals-site/" note="opens the animals archive">
             animals archive

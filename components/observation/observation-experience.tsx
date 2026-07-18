@@ -225,7 +225,7 @@ export function ObservationExperience({
 
   // ---- Two-column shell --------------------------------------------------
   return (
-    <div className="grid grid-cols-1 gap-12 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
+    <div className="grid grid-cols-1 gap-9 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
       <div className="w-full">
         <div className="mx-auto w-full max-w-[600px] lg:mx-0">
           <SpecimenView animal={animal} priority size="stage" />

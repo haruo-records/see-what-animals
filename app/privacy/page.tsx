@@ -10,12 +10,12 @@ function P({ children }: { children: React.ReactNode }) {
   return <p className="mt-6 text-body leading-relaxed text-charcoal">{children}</p>;
 }
 function H({ children }: { children: React.ReactNode }) {
-  return <h2 className="mt-16 text-h3 font-normal text-ink">{children}</h2>;
+  return <h2 className="mt-12 text-h3 font-normal text-ink">{children}</h2>;
 }
 
 export default function PrivacyPage() {
   return (
-    <section className="py-24">
+    <section className="py-18">
       <PageShell width="reading">
         <p className="u-label">Privacy</p>
         <h1 className="mt-6 text-h1 font-normal text-ink">Privacy</h1>
