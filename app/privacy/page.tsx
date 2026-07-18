@@ -22,15 +22,30 @@ export default function PrivacyPage() {
 
         <H>Observations</H>
         <P>
-          You can observe without an account. In this version, your answers to an observation are
-          stored only in your own browser (localStorage), so you are not asked the same form twice
-          on the same device. They are not sent to a server.
+          You can observe without an account, and without any sign-in. When you share what you see,
+          your answer is recorded anonymously so the project can show how differently people saw the
+          same form.
+        </P>
+        <P>
+          With each answer we may record: which question and which option you chose, the country you
+          are accessing from (estimated from your IP address on our server — your exact location is
+          never requested and your IP address is never stored), your browser language, a coarse
+          device type (mobile, tablet, or desktop), how you arrived (a referring site or campaign
+          tag), an anonymous session identifier, the game and question version, and the time. We do
+          not collect your name, email, age, gender, or precise location, and we do not build a
+          fingerprint or track you across other sites.
+        </P>
+        <P>
+          This data is used only in aggregate — for statistics, to improve the project, and as
+          material for the work itself — never to identify anyone. Country breakdowns are shown only
+          once enough people from a country have answered.
         </P>
 
         <H>Analytics</H>
         <P>
-          If analytics is enabled, aggregate, non-identifying usage events may be collected to
-          understand how the project is used. This is disabled until a measurement id is configured.
+          If analytics is enabled, aggregate, non-identifying usage events may also be collected to
+          understand how the project is used. Personal identifiers and full referrer URLs are never
+          sent to analytics. This is disabled until a measurement id is configured.
         </P>
 
         <H>Contact</H>

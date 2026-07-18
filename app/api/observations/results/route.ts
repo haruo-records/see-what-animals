@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isConfigured, rpc } from "@/lib/collection/supabase";
 import { clamp, parseCountryParam } from "@/lib/collection/validation";
 import { LIMITS, MIN_COUNTRY_SAMPLE_SIZE } from "@/lib/collection/config";
-import type { ResultsResponse } from "@/types";
+import type { ResultsResponse } from "@/types/collection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

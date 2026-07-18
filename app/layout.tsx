@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 export const metadata: Metadata = {
   metadataBase: new URL(siteSettings.siteUrl),
   title: {
-    default: `${siteSettings.brandName} — ${siteSettings.tagline.en}`,
+    default: `${siteSettings.brandName} — ${siteSettings.tagline}`,
     template: `%s — ${siteSettings.brandName}`,
   },
   description:
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: siteSettings.brandName,
-    title: `${siteSettings.brandName} — ${siteSettings.tagline.en}`,
+    title: `${siteSettings.brandName} — ${siteSettings.tagline}`,
     description: "A project for looking before naming.",
     url: siteSettings.siteUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteSettings.brandName} — ${siteSettings.tagline.en}`,
+    title: `${siteSettings.brandName} — ${siteSettings.tagline}`,
     description: "A project for looking before naming.",
   },
   robots: { index: true, follow: true },
