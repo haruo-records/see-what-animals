@@ -29,26 +29,56 @@ export type SupportTier = {
   href: string;
 };
 
+// NOTE: the hrefs below are Stripe SANDBOX (TEST mode) Payment Links — test /
+// sandbox only, NOT live charges. Replace each with its live Payment Link before
+// launch. Matching env vars (NEXT_PUBLIC_STRIPE_*), if set, still override these
+// defaults. Custom amount is intentionally not linked yet.
 export const oneTimeTiers: SupportTier[] = [
-  // ¥100 → Stripe SANDBOX (TEST mode) Payment Link. Test/sandbox only — NOT a live
-  // charge. Replace with the live Payment Link before launch. An env var
-  // (NEXT_PUBLIC_STRIPE_ONCE_100), if set, still overrides this default.
   {
     id: "once-100",
     amount: 100,
     cadence: "one-time",
     href: process.env.NEXT_PUBLIC_STRIPE_ONCE_100 ?? "https://buy.stripe.com/test_4gMeVd7lt28Ga4R9AJdAk00",
   },
-  // Other amounts intentionally have no link yet (render as quietly disabled).
-  { id: "once-300", amount: 300, cadence: "one-time", href: process.env.NEXT_PUBLIC_STRIPE_ONCE_300 ?? "" },
+  {
+    id: "once-300",
+    amount: 300,
+    cadence: "one-time",
+    href: process.env.NEXT_PUBLIC_STRIPE_ONCE_300 ?? "https://buy.stripe.com/9B6aEZdhf6eX1tZamBcV201",
+  },
 ];
 
 export const monthlyTiers: SupportTier[] = [
-  { id: "monthly-500", amount: 500, cadence: "monthly", href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_500 ?? "" },
-  { id: "monthly-1000", amount: 1000, cadence: "monthly", href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_1000 ?? "" },
-  { id: "monthly-3000", amount: 3000, cadence: "monthly", href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_3000 ?? "" },
-  { id: "monthly-10000", amount: 10000, cadence: "monthly", href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_10000 ?? "" },
-  { id: "monthly-100000", amount: 100000, cadence: "monthly", href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_100000 ?? "" },
+  {
+    id: "monthly-500",
+    amount: 500,
+    cadence: "monthly",
+    href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_500 ?? "https://buy.stripe.com/00w00l3GF9r9fkP3YdcV202",
+  },
+  {
+    id: "monthly-1000",
+    amount: 1000,
+    cadence: "monthly",
+    href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_1000 ?? "https://buy.stripe.com/9B6fZjb978n5fkPamBcV203",
+  },
+  {
+    id: "monthly-3000",
+    amount: 3000,
+    cadence: "monthly",
+    href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_3000 ?? "https://buy.stripe.com/5kQfZjeljbzh3C7bqFcV204",
+  },
+  {
+    id: "monthly-10000",
+    amount: 10000,
+    cadence: "monthly",
+    href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_10000 ?? "https://buy.stripe.com/aFa00leljeLt6OjdyNcV205",
+  },
+  {
+    id: "monthly-100000",
+    amount: 100000,
+    cadence: "monthly",
+    href: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_100000 ?? "https://buy.stripe.com/5kQ3cx5ON1YHc8D52hcV206",
+  },
 ];
 
 /** A single "customer chooses price" Payment Link (monthly), for Custom amount. */
