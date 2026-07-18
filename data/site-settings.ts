@@ -1,22 +1,27 @@
 /**
  * SITE SETTINGS — one place for run-wide switches. No component hardcodes these.
+ * The site is English-only.
  */
 export const siteSettings = {
   brandName: "See What?",
-  tagline: { en: "Observation is a luxury.", ja: "観察する時間は、贅沢である。" },
-  altTagline: { en: "Stay with what you see.", ja: "見えたものと、しばらく一緒に。" },
+  tagline: "Observation is a luxury.",
+  altTagline: "Stay with what you see.",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://see-what.example",
   animalsArchiveUrl:
     process.env.NEXT_PUBLIC_ANIMALS_ARCHIVE_URL ??
     "https://haruo-records.github.io/animals-site/",
 
+  /** External project links, surfaced quietly at the foot of the About page. */
+  noteUrl: process.env.NEXT_PUBLIC_NOTE_URL ?? "https://note.com/",
+  substackUrl: process.env.NEXT_PUBLIC_SUBSTACK_URL ?? "https://substack.com/",
+
   /** Session clock. Change to alter how status is derived. */
   timezone: "Asia/Tokyo",
   defaultSessionDays: 7,
 
-  /** Locale scaffolding. English default; ja dictionary present for later. */
+  /** English-only. */
   defaultLocale: "en" as const,
-  locales: ["en", "ja"] as const,
+  locales: ["en"] as const,
 
   /** Observation note limits. */
   noteMaxLength: 160,

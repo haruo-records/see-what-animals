@@ -50,7 +50,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 onClick={onClose}
                 className="text-h2 font-normal text-ink transition-colors hover:text-charcoal"
               >
-                {item.label.en}
+                {item.label}
               </Link>
             ))}
         </nav>
@@ -67,7 +67,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   rel="noopener noreferrer"
                   className="text-caption uppercase tracking-[0.14em] text-muted hover:text-charcoal"
                 >
-                  {item.label.en} ↗
+                  {item.label} ↗
                 </a>
               ) : (
                 <Link
@@ -76,7 +76,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   onClick={onClose}
                   className="text-caption uppercase tracking-[0.14em] text-muted hover:text-charcoal"
                 >
-                  {item.label.en}
+                  {item.label}
                 </Link>
               ),
             )}

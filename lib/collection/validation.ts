@@ -3,7 +3,7 @@
  * strict and prevents oversized or hostile values from being stored.
  */
 import { ALLOWED_DEVICE_TYPES, LIMITS } from "./config";
-import type { DeviceType, IncomingAnswer } from "@/types";
+import type { DeviceType, IncomingAnswer } from "@/types/collection";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ID_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i;

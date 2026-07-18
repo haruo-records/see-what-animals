@@ -42,7 +42,7 @@ export function SiteHeader() {
                     (active ? "text-ink" : "text-charcoal hover:text-ink")
                   }
                 >
-                  {item.label.en}
+                  {item.label}
                 </Link>
               );
             })}

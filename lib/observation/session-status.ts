@@ -28,7 +28,6 @@ export function isAcceptingResponses(session: ObservationSession, now: Date = ne
 export function remainingLabel(
   session: ObservationSession,
   now: Date = new Date(),
-  locale: "en" | "ja" = "en",
 ): string | null {
   const status = deriveStatus(session, now);
   if (status === "closed") return null;
@@ -38,13 +37,6 @@ export function remainingLabel(
   const dayMs = 24 * 60 * 60 * 1000;
   const daysLeft = Math.ceil(msLeft / dayMs);
 
-  if (locale === "ja") {
-    if (status === "scheduled") return "まもなく開始";
-    if (daysLeft <= 0) return "本日終了";
-    if (daysLeft === 1) return "あと1日";
-    return `あと${daysLeft}日`;
-  }
-
   if (status === "scheduled") return "Opening soon";
   if (daysLeft <= 0) return "Ends today";
   if (daysLeft === 1) return "Ends tomorrow";
@@ -52,9 +44,9 @@ export function remainingLabel(
 }
 
 /** Long-form date, e.g. "14 July 2026". */
-export function formatDate(iso: string, locale: "en" | "ja" = "en"): string {
+export function formatDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString(locale === "ja" ? "ja-JP" : "en-GB", {
+  return d.toLocaleDateString("en-GB", {
     year: "numeric",
     month: "long",
     day: "numeric",

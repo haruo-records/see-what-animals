@@ -94,14 +94,27 @@ export function primaryLanguage(): string | null {
 }
 
 /**
- * Fire-and-forget save. Never throws into the caller; uses keepalive so it
- * completes even if we navigate to the result immediately after.
+ * Saves the answers. Awaited by the caller so the POST completes before
+ * navigation. Throws on a non-2xx response (and logs status + body) so failures
+ * are visible instead of silently swallowed.
  */
 export async function submitObservations(
   sessionId: string,
   answers: IncomingAnswer[],
 ): Promise<void> {
-  if (!hasWindow() || !sessionId || answers.length === 0) return;
+  /* eslint-disable no-console */
+  if (!hasWindow()) {
+    console.info("[see-what] submitObservations skipped: no window");
+    return;
+  }
+  if (!sessionId) {
+    console.info("[see-what] submitObservations skipped: no sessionId");
+    return;
+  }
+  if (answers.length === 0) {
+    console.info("[see-what] submitObservations skipped: no answers (all skipped?)");
+    return;
+  }
   try {
     const utm = captureFirstTouchUtm();
     const body = {
@@ -115,18 +128,23 @@ export async function submitObservations(
       anonymousSessionId: getAnonymousSessionId(),
       answers,
     };
-    await fetch(OBSERVATIONS_ENDPOINT, {
+    console.info("[see-what] POST /api/observations →", body);
+    const res = await fetch(OBSERVATIONS_ENDPOINT, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
-      keepalive: true,
     });
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
-      console.error("Failed to save observation", error);
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("[see-what] POST /api/observations failed", res.status, text);
+      throw new Error(`Observation save failed: ${res.status} ${text}`);
     }
+    console.info("[see-what] POST /api/observations status", res.status);
+  } catch (error) {
+    console.error("[see-what] POST /api/observations error", error);
+    throw error;
   }
+  /* eslint-enable no-console */
 }
 
 export async function fetchResults(

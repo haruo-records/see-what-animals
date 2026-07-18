@@ -52,10 +52,7 @@ export const observationSessions: ObservationSession[] = [
     slug: "observation-023",
     observationNumber: "023",
     animalId: "animal-023",
-    intro: {
-      en: "Take a moment before you decide what it is.",
-      ja: "これが何かを決める前に、少しだけ眺めてください。",
-    },
+    intro: "Take a moment before you decide what it is.",
     startsAt: featuredWindow.startsAt,
     closesAt: featuredWindow.closesAt,
     questionIds: ["q-see", "q-move", "q-name"],

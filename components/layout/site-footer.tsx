@@ -28,7 +28,7 @@ export function SiteFooter() {
                     rel="noopener noreferrer"
                     className="text-caption uppercase tracking-[0.12em] text-muted hover:text-charcoal"
                   >
-                    {item.label.en} ↗
+                    {item.label} ↗
                   </a>
                 ) : (
                   <Link
@@ -36,7 +36,7 @@ export function SiteFooter() {
                     href={item.href}
                     className="text-caption uppercase tracking-[0.12em] text-charcoal hover:text-ink"
                   >
-                    {item.label.en}
+                    {item.label}
                   </Link>
                 ),
               )}

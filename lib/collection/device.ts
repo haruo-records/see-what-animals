@@ -2,7 +2,7 @@
  * Normalize a User-Agent string to a coarse device type. The raw UA is never
  * stored — only this bucket is.
  */
-import type { DeviceType } from "@/types";
+import type { DeviceType } from "@/types/collection";
 
 export function deviceTypeFromUserAgent(ua: string | null | undefined): DeviceType {
   if (!ua) return "unknown";

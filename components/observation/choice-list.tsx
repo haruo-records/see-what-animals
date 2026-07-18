@@ -20,7 +20,7 @@ export function ChoiceList({
   if (!question.choices) return null;
 
   return (
-    <div role="radiogroup" aria-label={question.question.en} className="flex flex-col">
+    <div role="radiogroup" aria-label={question.question} className="flex flex-col">
       {question.choices.map((choice) => {
         const selected = value === choice.id;
         return (
@@ -44,7 +44,7 @@ export function ChoiceList({
             >
               {selected ? <span className="absolute inset-[1.5px] rounded-full bg-ink" /> : null}
             </span>
-            <span className="flex-1">{choice.label.en}</span>
+            <span className="flex-1">{choice.label}</span>
           </button>
         );
       })}

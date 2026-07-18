@@ -16,13 +16,13 @@ export function ResultDistribution({
   yourChoiceId?: string;
 }) {
   const labelFor = (choiceId: string) =>
-    question.choices?.find((c) => c.id === choiceId)?.label.en ?? choiceId;
+    question.choices?.find((c) => c.id === choiceId)?.label ?? choiceId;
 
   const sorted = [...results].sort((a, b) => b.percentage - a.percentage);
 
   return (
     <div>
-      <p className="u-label mb-6">{question.question.en}</p>
+      <p className="u-label mb-6">{question.question}</p>
       <ul className="flex flex-col gap-5">
         {sorted.map((r) => {
           const mine = r.choiceId === yourChoiceId;

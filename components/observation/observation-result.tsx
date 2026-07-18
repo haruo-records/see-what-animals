@@ -37,7 +37,7 @@ export function ObservationResult({
 }) {
   const primaryQuestion = questions.find((q) => q.type === "single-choice");
   const yourPrimary = primaryQuestion && yourAnswers ? yourAnswers[primaryQuestion.id] : undefined;
-  const yourLabel = primaryQuestion?.choices?.find((c) => c.id === yourPrimary)?.label.en;
+  const yourLabel = primaryQuestion?.choices?.find((c) => c.id === yourPrimary)?.label;
 
   const distributions = questions
     .filter((q) => q.type === "single-choice")

@@ -22,10 +22,10 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-move", choiceId: "m-waits", count: 2, percentage: 29 },
       { questionId: "q-move", choiceId: "m-creeps", count: 1, percentage: 14 },
     ],
-    offeredNames: ["Slow one", "Kettle", "みずすまし"],
+    offeredNames: ["Slow one", "Kettle", "Skater"],
     selectedNotes: [
       { id: "n1", text: "It looked like it was about to leave.", language: "en" },
-      { id: "n2", text: "端のところがずっと気になっていた。", language: "ja" },
+      { id: "n2", text: "I kept looking at the edge of it.", language: "en" },
     ],
   },
   "observation-022": {
@@ -43,10 +43,10 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-move", choiceId: "m-creeps", count: 30, percentage: 12 },
       { questionId: "q-move", choiceId: "m-other", count: 18, percentage: 7 },
     ],
-    offeredNames: ["Watcher", "Low tide", "留守番", "The listener"],
+    offeredNames: ["Watcher", "Low tide", "The keeper", "The listener"],
     selectedNotes: [
       { id: "n3", text: "Someone left before I did.", language: "en" },
-      { id: "n4", text: "動かないのに、待っている感じがした。", language: "ja" },
+      { id: "n4", text: "It did not move, but it seemed to be waiting.", language: "en" },
     ],
   },
   "observation-021": {
@@ -63,7 +63,7 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-move", choiceId: "m-drifts", count: 72, percentage: 33 },
       { questionId: "q-move", choiceId: "m-waits", count: 50, percentage: 23 },
     ],
-    offeredNames: ["Sprout", "とうだい"],
+    offeredNames: ["Sprout", "Lighthouse"],
   },
   "observation-020": {
     sessionId: "observation-020",
@@ -76,7 +76,7 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-see", choiceId: "c-bird", count: 33, percentage: 21 },
       { questionId: "q-see", choiceId: "c-machine", count: 21, percentage: 14 },
     ],
-    offeredNames: ["Folded", "やすみ", "Quiet thing"],
+    offeredNames: ["Folded", "Rest", "Quiet thing"],
   },
 };
 

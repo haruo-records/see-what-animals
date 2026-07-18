@@ -9,6 +9,6 @@ export function ObservationPrompt({
   className?: string;
 }) {
   return (
-    <h2 className={`text-h2 font-normal text-ink ${className}`}>{question.question.en}</h2>
+    <h2 className={`text-h2 font-normal text-ink ${className}`}>{question.question}</h2>
   );
 }
