@@ -45,8 +45,10 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
 
   function Item({ item }: { item: NavItem }) {
     if (item.comingSoon || !item.enabled) {
+      // Not-yet-open: the label keeps its normal weight and colour; only the
+      // small, pale "SOON" marker signals that it is closed. Non-clickable.
       return (
-        <span className="flex items-baseline gap-2 text-h3 font-normal text-stone">
+        <span className="flex items-baseline gap-2 text-h3 font-normal text-charcoal">
           {item.label}
           <span className="text-caption uppercase tracking-[0.14em] text-muted">soon</span>
         </span>
@@ -115,9 +117,11 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
           <hr className="my-6 border-0 border-t border-stone" />
 
           <div className="flex flex-col gap-4">
-            {utilityNav.filter((n) => n.enabled).map((item) => (
-              <Item key={item.href} item={item} />
-            ))}
+            {utilityNav
+              .filter((n) => n.enabled || n.comingSoon)
+              .map((item) => (
+                <Item key={item.href} item={item} />
+              ))}
           </div>
 
           <hr className="my-6 border-0 border-t border-stone" />

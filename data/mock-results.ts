@@ -32,49 +32,9 @@ export const mockResults: Record<string, ObservationResult> = {
       { questionId: "q-stands", choiceId: "st-surface", count: 1, percentage: 14 },
     ],
   },
-  "observation-022": {
-    sessionId: "observation-022",
-    totalResponses: 248,
-    frozenResponses: 248,
-    allTimeResponses: 1284,
-    choiceResults: [
-      { questionId: "q-see", choiceId: "c-bird", count: 104, percentage: 42 },
-      { questionId: "q-see", choiceId: "c-machine", count: 67, percentage: 27 },
-      { questionId: "q-see", choiceId: "c-plant", count: 45, percentage: 18 },
-      { questionId: "q-see", choiceId: "c-other", count: 32, percentage: 13 },
-      { questionId: "q-stands", choiceId: "st-shape", count: 121, percentage: 49 },
-      { questionId: "q-stands", choiceId: "st-part", count: 79, percentage: 32 },
-      { questionId: "q-stands", choiceId: "st-surface", count: 30, percentage: 12 },
-      { questionId: "q-stands", choiceId: "st-other", count: 18, percentage: 7 },
-    ],
-  },
-  "observation-021": {
-    sessionId: "observation-021",
-    totalResponses: 218,
-    frozenResponses: 218,
-    allTimeResponses: 218,
-    choiceResults: [
-      { questionId: "q-see", choiceId: "c-plant", count: 90, percentage: 41 },
-      { questionId: "q-see", choiceId: "c-bird", count: 61, percentage: 28 },
-      { questionId: "q-see", choiceId: "c-other", count: 39, percentage: 18 },
-      { questionId: "q-see", choiceId: "c-machine", count: 28, percentage: 13 },
-      { questionId: "q-stands", choiceId: "st-shape", count: 96, percentage: 44 },
-      { questionId: "q-stands", choiceId: "st-part", count: 72, percentage: 33 },
-      { questionId: "q-stands", choiceId: "st-surface", count: 50, percentage: 23 },
-    ],
-  },
-  "observation-020": {
-    sessionId: "observation-020",
-    totalResponses: 156,
-    frozenResponses: 156,
-    allTimeResponses: 156,
-    choiceResults: [
-      { questionId: "q-see", choiceId: "c-other", count: 58, percentage: 37 },
-      { questionId: "q-see", choiceId: "c-plant", count: 44, percentage: 28 },
-      { questionId: "q-see", choiceId: "c-bird", count: 33, percentage: 21 },
-      { questionId: "q-see", choiceId: "c-machine", count: 21, percentage: 14 },
-    ],
-  },
+  // Demo distributions for past observations (020–022) were removed with their
+  // sessions so the Archive opens empty. Add a session in observation-sessions.ts
+  // and its distribution here (keyed by session id) to bring an entry back.
 };
 
 export function getMockResult(sessionId: string): ObservationResult | undefined {

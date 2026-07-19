@@ -19,27 +19,9 @@ export const animalReferences: AnimalReference[] = [
     motion: undefined,
     alt: "An abstract form with a rounded body and three smaller shapes set nearby.",
   },
-  {
-    id: "animal-022",
-    specimenNumber: "022",
-    imageUrl: "specimen:animal-022",
-    archiveUrl: "https://haruo-records.github.io/animals-site/",
-    alt: "A low, wide form leaning slightly, with a single pale mark near its upper edge.",
-  },
-  {
-    id: "animal-021",
-    specimenNumber: "021",
-    imageUrl: "specimen:animal-021",
-    archiveUrl: "https://haruo-records.github.io/animals-site/",
-    alt: "A tall, narrow form with two rounded shapes gathered at its base.",
-  },
-  {
-    id: "animal-020",
-    specimenNumber: "020",
-    imageUrl: "specimen:animal-020",
-    archiveUrl: "https://haruo-records.github.io/animals-site/",
-    alt: "A soft, folded form resting close to the ground with one raised edge.",
-  },
+  // References for the past demo observations (020–022) were removed together
+  // with their sessions so the Archive opens empty. Append a new entry here when
+  // a real work is added, then point a session's `animalId` at it.
 ];
 
 export function getAnimalReference(id: string): AnimalReference | undefined {

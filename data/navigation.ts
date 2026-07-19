@@ -34,9 +34,14 @@ export const playNav: NavItem[] = [
   { label: "Lab", href: "/lab", enabled: false, comingSoon: true, note: "new ways of observing" },
 ];
 
-/** Shop + Support sit below Play, separated by a rule. */
+/**
+ * Shop + Support sit below Play, separated by a rule. Shop is held closed for
+ * now — shown, quiet, and non-clickable with a "soon" marker (same treatment as
+ * Lab). Re-open it by flipping `enabled` back to true and dropping `comingSoon`;
+ * the /shop route and page are left untouched so nothing else has to change.
+ */
 export const utilityNav: NavItem[] = [
-  { label: "Shop", href: "/shop", enabled: true },
+  { label: "Shop", href: "/shop", enabled: false, comingSoon: true },
   { label: "Support", href: "/support", enabled: true },
 ];
 

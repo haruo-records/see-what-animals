@@ -7,6 +7,7 @@ import { isPublic } from "@/lib/observation/publish";
 import { PageShell } from "@/components/layout/page-shell";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ObservationList } from "@/components/observations/observation-list";
+import { ArchiveEmpty } from "@/components/observations/archive-empty";
 
 export const metadata: Metadata = {
   title: "Archive",
@@ -28,6 +29,19 @@ export default function ArchivePage() {
       animal: getAnimalReference(session.animalId)!,
       responses: resultService.getResult(session.id)?.totalResponses,
     }));
+
+  // Until an observation has closed, the Archive is shown as a quiet empty room
+  // rather than a heading over nothing. The listing wiring below is unchanged and
+  // returns as soon as there is a closed observation to show.
+  if (items.length === 0) {
+    return (
+      <section className="py-12 sm:py-14">
+        <PageShell width="work">
+          <ArchiveEmpty />
+        </PageShell>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 sm:py-14">

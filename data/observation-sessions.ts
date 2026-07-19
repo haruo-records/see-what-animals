@@ -59,42 +59,13 @@ export const observationSessions: ObservationSession[] = [
     allowPostCloseResponses: false,
     featured: true,
   },
-  {
-    id: "observation-022",
-    slug: "observation-022",
-    observationNumber: "022",
-    animalId: "animal-022",
-    startsAt: "2026-07-06T00:00:00.000Z",
-    closesAt: "2026-07-12T23:59:59.000Z",
-    resultFrozenAt: "2026-07-12T23:59:59.000Z",
-    questionIds: ["q-see", "q-stands", "q-name"],
-    allowPostCloseResponses: true,
-    featured: false,
-  },
-  {
-    id: "observation-021",
-    slug: "observation-021",
-    observationNumber: "021",
-    animalId: "animal-021",
-    startsAt: "2026-06-29T00:00:00.000Z",
-    closesAt: "2026-07-05T23:59:59.000Z",
-    resultFrozenAt: "2026-07-05T23:59:59.000Z",
-    questionIds: ["q-see", "q-stands"],
-    allowPostCloseResponses: false,
-    featured: false,
-  },
-  {
-    id: "observation-020",
-    slug: "observation-020",
-    observationNumber: "020",
-    animalId: "animal-020",
-    startsAt: "2026-06-22T00:00:00.000Z",
-    closesAt: "2026-06-28T23:59:59.000Z",
-    resultFrozenAt: "2026-06-28T23:59:59.000Z",
-    questionIds: ["q-see", "q-name"],
-    allowPostCloseResponses: false,
-    featured: false,
-  },
+  // NOTE: The Archive opens empty on purpose. Past demo observations (020–022)
+  // were removed so nothing dummy is shown; the Archive fills itself again as
+  // real sessions close. To seed or restore a past entry, append it here exactly
+  // like the current observation above (a new slug + observationNumber, an
+  // animalId in animal-references.ts, its questionIds, and a `closesAt` in the
+  // past) and add its distribution to data/mock-results.ts — the listing wiring
+  // is unchanged, so it will appear automatically.
 ];
 
 export function getSessionBySlug(slug: string): ObservationSession | undefined {
