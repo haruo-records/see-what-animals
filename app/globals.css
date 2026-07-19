@@ -85,6 +85,98 @@
   }
 }
 
+@layer components {
+  /* ============================================================
+     Two-image observation space — Slow Watching (.observation-pair)
+     Two works share ONE horizontal space the viewer moves through; never a
+     slideshow that swaps 1 for 2. Plain CSS scroll + scroll-snap only.
+     ============================================================ */
+
+  /* Base = phone portrait: a horizontal scroll track. The first work sits large
+     (~85% of the space) and the second peeks in from the right (~11%, via the
+     4% gap) so its presence is felt without any arrow, dot, or "SWIPE" label.
+     Vertical page scrolling is never blocked (touch-action keeps pan-y). */
+  .observation-pair {
+    display: flex;
+    align-items: flex-start;
+    gap: 4%;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+    scrollbar-width: none; /* Firefox — keep the bar out of the exhibition space */
+    padding-bottom: 3px; /* room so a keyboard focus ring is never clipped */
+  }
+  .observation-pair::-webkit-scrollbar {
+    display: none; /* WebKit/Blink */
+  }
+  .observation-pair__item {
+    flex: 0 0 85%; /* first work large; the remaining ~11% shows the next */
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+  .observation-pair__frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Phone landscape: a short, wide viewport. Show BOTH works at once with no
+     horizontal scroll, and let their HEIGHT drive the size so nothing spills
+     past the top or bottom. Height-aware on purpose so it does not fire on
+     tall tablets held in landscape. */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .observation-pair {
+      overflow-x: visible;
+      scroll-snap-type: none;
+      gap: 3%;
+      justify-content: center;
+      align-items: center;
+    }
+    .observation-pair__item {
+      flex: 0 1 auto;
+      scroll-snap-align: none;
+    }
+    .observation-pair__frame {
+      width: auto;
+      height: min(74vh, 44vw); /* both fit within the short height, aspect kept */
+    }
+  }
+
+  /* Tablet / PC (enough width AND height): both works side by side as one unit,
+     centred, no horizontal scroll, and never shrinking to nothing (max-width so
+     the works keep presence on very wide screens). Narrower tablets in portrait
+     fall through to the phone-portrait swipe track above by design. */
+  @media (min-width: 900px) and (min-height: 601px) {
+    .observation-pair {
+      overflow-x: visible;
+      scroll-snap-type: none;
+      gap: 2.5rem;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .observation-pair__item {
+      flex: 1 1 0;
+      max-width: 480px;
+      scroll-snap-align: none;
+    }
+    .observation-pair__frame {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  /* Reduced motion: drop snapping so nothing tugs the viewport unexpectedly.
+     The space is still fully scrollable by touch and keyboard. */
+  @media (prefers-reduced-motion: reduce) {
+    .observation-pair {
+      scroll-snap-type: none;
+    }
+  }
+}
+
 @layer utilities {
   /* Eyebrow / specimen label treatment */
   .u-label {

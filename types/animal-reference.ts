@@ -10,6 +10,16 @@ export type AnimalReference = {
   provisionalName?: string;
   /** Path under /public/specimens (v0) or, later, a CDN/archive URL. */
   imageUrl: string;
+  /**
+   * Optional second image for the two-image observation layout (Slow Watching).
+   * When absent, a deterministic companion form is derived so the observation
+   * still shows two images — see lib/observation/observation-pair.ts. Provide a
+   * real value to migrate a session to a genuine second work / state / angle.
+   * Not a "correct" or "after" image — just the second thing to observe.
+   */
+  secondImageUrl?: string;
+  /** Alt for `secondImageUrl`; falls back to a neutral description when absent. */
+  secondAlt?: string;
   /** Deep link into the existing animals archive. */
   archiveUrl: string;
   category?: string;

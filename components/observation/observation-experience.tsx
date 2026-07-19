@@ -10,7 +10,8 @@ import { submitObservations, captureFirstTouchUtm } from "@/lib/collection/clien
 import { submitWord } from "@/lib/naming/client";
 import { validateWord } from "@/lib/naming/word";
 import { GAME_VERSION } from "@/lib/collection/config";
-import { SpecimenView } from "./specimen-view";
+import { SpecimenPair } from "./specimen-pair";
+import { toObservationPair } from "@/lib/observation/observation-pair";
 import { ObservationPrompt } from "./observation-prompt";
 import { ChoiceList } from "./choice-list";
 import { WordInput } from "./word-input";
@@ -39,6 +40,7 @@ export function ObservationExperience({
   accepting: boolean;
 }) {
   const router = useRouter();
+  const pair = toObservationPair(animal);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [alreadyObserved, setAlreadyObserved] = useState(false);
@@ -223,19 +225,20 @@ export function ObservationExperience({
     );
   }
 
-  // ---- Two-column shell --------------------------------------------------
+  // ---- Stacked shell -----------------------------------------------------
+  // The two works are one observation unit, centred; the question sits below
+  // them (never a comparison quiz beside them). A generous gap keeps observing
+  // and answering as two separate moments.
   return (
-    <div className="grid grid-cols-1 gap-9 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
+    <div className="mx-auto flex w-full max-w-work flex-col items-center gap-12 lg:gap-16">
       <div className="w-full">
-        <div className="mx-auto w-full max-w-[600px] lg:mx-0">
-          <SpecimenView animal={animal} priority size="stage" />
-        </div>
-        <div className="mt-6 text-center lg:text-left">
+        <SpecimenPair pair={pair} priority />
+        <div className="mt-6 text-center">
           <AnimalName animalId={animal.id} />
         </div>
       </div>
 
-      <div className="w-full lg:pt-2">{right}</div>
+      <div className="w-full max-w-reading">{right}</div>
     </div>
   );
 }

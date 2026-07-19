@@ -1,4 +1,5 @@
 export * from "./animal-reference";
+export * from "./observation-image";
 export * from "./observation-question";
 export * from "./observation-session";
 export * from "./observation-result";

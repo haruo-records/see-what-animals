@@ -7,7 +7,8 @@ import type {
 import { getDictionary } from "@/locales";
 import { formatDate } from "@/lib/observation/session-status";
 import { LiveDistribution } from "./live-distribution";
-import { SpecimenView } from "./specimen-view";
+import { SpecimenPair } from "./specimen-pair";
+import { toObservationPair } from "@/lib/observation/observation-pair";
 import { ShareResult } from "./share-result";
 import { Divider } from "@/components/ui/divider";
 import { TextLink } from "@/components/ui/text-link";
@@ -39,6 +40,7 @@ export function ObservationResult({
   const yourPrimary = primaryQuestion && yourAnswers ? yourAnswers[primaryQuestion.id] : undefined;
   const yourLabel = primaryQuestion?.choices?.find((c) => c.id === yourPrimary)?.label;
 
+  const pair = toObservationPair(animal);
   const names = result.offeredNames ?? [];
   const notes = result.selectedNotes ?? [];
 
@@ -48,17 +50,16 @@ export function ObservationResult({
 
   return (
     <div className="flex flex-col gap-9">
-      {/* Top — same two columns as the observation screen */}
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[55fr_45fr] lg:gap-24 lg:items-start">
-        <div className="w-full">
-          {showSpecimen ? (
-            <div className="mx-auto w-full max-w-[600px] lg:mx-0">
-              <SpecimenView animal={animal} size="stage" />
-            </div>
-          ) : null}
-        </div>
+      {/* Top — the same two-image observation unit as the observation screen,
+          with the record read below it (never a comparison quiz). */}
+      <div className="mx-auto flex w-full max-w-work flex-col items-center gap-12">
+        {showSpecimen ? (
+          <div className="w-full">
+            <SpecimenPair pair={pair} />
+          </div>
+        ) : null}
 
-        <div className="w-full lg:pt-2">
+        <div className="w-full max-w-reading">
           <p className="u-label mb-6">Observation {session.observationNumber}</p>
           {yourLabel ? (
             <div className="mb-10">
