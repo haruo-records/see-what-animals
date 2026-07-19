@@ -1,136 +1,84 @@
 import type { Creature, Part } from "../types";
+import { stalk, chip, slot, leaning, swell, pressed, becomes, flat, grows } from "../mass";
+import { KIND } from "../palette";
 import { press } from "../relate";
 
 /**
- * PROTOTYPE C — a body that folds back and holds itself.
+ * PURPOSE: TO STRAIN. To let some of what arrives continue and keep the rest.
  *
- * It goes out, turns, and comes back inside its own line, gripping a smaller
- * mass on the way. There is no end that reads as the front. Whichever way it
- * is going, most of it is pointing the other way.
+ * A straining thing presents a broad face to the flow and is perforated across
+ * it. The openings are SLOTS, not holes: a row of round holes reads as a
+ * colander or a drilled plate, and a drilled plate is a manufactured object.
+ * Slots of unequal length read as gaps that something passes through.
+ *
+ * One slot has closed up. Whatever was being strained eventually won.
  */
 
-const outward: Part = {
-  id: "outward-run",
-  character: "folded",
-  // The long run: leaves low-left, rises, and begins to turn at the right.
-  outline: [
-    [176, 664],
-    [288, 486],
-    [512, 374],
-    [726, 372],
-    [828, 456],
-    [792, 596],
-    [668, 512],
-    [508, 496],
-    [346, 588],
-    [258, 730],
-  ],
-  // Restrained. Heavy rounding on a band eats it: each corner cuts back along
-  // both edges, so a radius near the band's own width pulls the two long sides
-  // toward each other until the part is thinner than drawn. That is how the
-  // first version of this body ended up with no overlaps at all — the runs were
-  // designed to meet and the rounding quietly moved them apart.
-  rounding: [34, 26, 44, 18, 12, 24, 16, 38, 30, 36],
+const face: Part = {
+  id: "straining-face",
+  character: "compressed mass",
+  outline: chip(
+    stalk(
+      leaning([336, 400], 62, 22, 400, 10),
+      pressed(swell(126, 34, 0.42, 0.68), 0.66, 0.22, 0.3),
+      becomes(swell(116, 28, 0.4, 0.62), grows(112, 84, 1.2), 0.6, 0.4),
+    ),
+    0.52,
+    0.09,
+  ),
   depth: 1,
-  edges: [
-    {
-      // The crease along the top of the run, where the upper surface folds
-      // over. It runs only as far as the fold does.
-      points: [
-        [330, 500],
-        [520, 434],
-        [688, 428],
-      ],
-      rounding: [0, 50, 0],
-      weight: 9,
-    },
+  openings: [
+    // Four slots, unequal, following the face rather than ruled across it.
+    { outline: slot([392, 462], [452, 566], 21, 0.5), rim: 6 },
+    { outline: slot([452, 430], [516, 552], 24, 0.42), rim: 6 },
+    { outline: slot([514, 424], [572, 528], 19, 0.55), rim: 6 },
+    // The fourth is short and nearly shut — the one that silted up.
+    { outline: slot([576, 442], [604, 484], 13, 0.7), rim: 6 },
   ],
-  relations: [{ to: "return-run", is: "folds-back-onto" }],
+  relations: [{ to: "silted-mass", is: "encloses" }],
 };
 
-const returnRun: Part = {
-  id: "return-run",
-  character: "folded",
-  // The way back, tucked behind the outward run and ending under its start.
-  outline: [
-    [806, 528],
-    [714, 606],
-    [498, 652],
-    [316, 640],
-    [222, 706],
-    [300, 772],
-    [520, 776],
-    [736, 706],
-    [858, 586],
-  ],
-  rounding: [22, 34, 30, 18, 14, 26, 36, 30, 20],
-  depth: 0,
-  relations: [
-    { to: "outward-run", is: "passes-behind" },
-    { to: "outward-run", is: "wraps-around" },
-  ],
-};
-
-const held: Part = {
-  id: "held-mass",
-  character: "compressed",
-  // Caught in the fold and flattened by it. Wider than it is tall because of
-  // where it is, not because it was drawn that way.
-  outline: [
-    [408, 528],
-    [566, 512],
-    [664, 566],
-    [640, 654],
-    [478, 682],
-    [382, 616],
-  ],
-  rounding: [40, 26, 20, 34, 30, 44],
+const silted: Part = {
+  id: "silted-mass",
+  character: "compressed cavity",
+  // The accretion that closed the fourth slot, bulging out past the face.
+  outline: stalk(leaning([566, 434], 44, 18, 118, 6), swell(46, 20, 0.44, 0.62), swell(42, 16, 0.6, 0.62)),
   depth: 2,
-  relations: [
-    { to: "outward-run", is: "wedges-into" },
-    { to: "return-run", is: "rests-on" },
-  ],
+  relations: [{ to: "straining-face", is: "wedges-into" }],
 };
 
-const stray: Part = {
-  id: "stray-end",
-  character: "tapered",
-  // A thin end that got out and is going somewhere else entirely.
-  outline: [
-    [790, 452],
-    [900, 388],
-    [944, 402],
-    [872, 470],
-    [806, 500],
-  ],
-  rounding: [26, 34, 12, 40, 22],
-  depth: -1,
-  relations: [
-    { to: "outward-run", is: "remains-slightly-detached" },
-    { to: "outward-run", is: "pulls-sideways" },
-  ],
+const seat: Part = {
+  id: "seated-base",
+  character: "anchored mass",
+  outline: stalk(
+    leaning([352, 706], 6, 14, 268, 8),
+    becomes(swell(62, 26, 0.42, 0.62), flat(48), 0.58, 0.42),
+    grows(66, 48, 0.9),
+  ),
+  depth: 0,
+  relations: [{ to: "straining-face", is: "supports" }],
 };
 
 export const prototypeC: Creature = {
   id: "prototype-c",
-  title: "Prototype C",
-  parts: [
-    stray,
-    returnRun,
-    outward,
-    // Pressed into the fold so it is gripped rather than resting in a gap.
-    press(held, outward, 8),
-  ],
+  title: "C — the one with four slots and a fifth that closed",
+  palette: KIND,
+  parts: [press(seat, face, 92), face, press(silted, face, 14)],
   notes: {
-    centreOfGravity:
-      "Mid-low, roughly under the held mass, where the two runs cross. It sits in the fold rather than in any one part.",
-    imaginedMovement:
-      "It could roll along the fold, or tighten and loosen. Either way it arrives sideways.",
-    awkwardness:
-      "It has both ends at the same side and is holding something it cannot put down without opening, and it cannot open while holding it.",
+    purpose:
+      "To strain. A broad face held upright across a flow, perforated with slots that let some of what arrives keep going.",
+    traceOfTime:
+      "The upper edge is worn shallow where things have run over it. One corner is broken on a straight face. The smallest slot has silted up entirely and the accretion now bulges past the surface.",
+    order: "A graded series. Four slots decreasing in size along the face.",
+    deviation: "The last one is not merely smaller; it is shut, and what shut it is still there.",
+    wayOfLiving: "It stands in something moving and keeps a fraction of it.",
+    suggestedUse: "Sorting. Something was being separated here, by size, and the smallest grade has stopped working.",
+    centreOfGravity: "Low, in the seated base. The face leans back off vertical, into whatever it faces.",
     charm:
-      "The stray end is still heading off in its own direction, quite calmly, while the rest of the body has already turned round and gone back.",
+      "It is failing very slowly and entirely gracefully, one slot at a time, and the failure is the most interesting thing about it.",
     asObject:
-      "About 30cm. One long folded band of a stiff, slightly springy material, doubled back on itself, with a softer lump caught in the doubling.",
+      "At 5cm it reads as a fitting from something larger; at 50cm it reads as the whole apparatus. It does not need a size to make sense.",
+    whyPocketed:
+      "The slots are the sort of thing you hold up to the light. Three go through and one does not, and it takes a moment to see why.",
   },
 };

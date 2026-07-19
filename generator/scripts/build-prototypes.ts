@@ -1,9 +1,13 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { renderCreature, occlusions, INK } from "../volume/render";
+import { renderCreature, occlusions } from "../volume/render";
+import { MONO } from "../volume/palette";
 import { prototypeA } from "../volume/prototypes/a";
 import { prototypeB } from "../volume/prototypes/b";
 import { prototypeC } from "../volume/prototypes/c";
+import { prototypeD } from "../volume/prototypes/d";
+import { prototypeE } from "../volume/prototypes/e";
+import { prototypeF } from "../volume/prototypes/f";
 import type { Creature } from "../volume/types";
 
 /**
@@ -19,9 +23,9 @@ const OUT = join("generated", "prototypes");
 const escape = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-function page(items: Array<{ creature: Creature; svg: string }>): string {
+function page(items: Array<{ creature: Creature; svg: string; mono: string }>): string {
   const cards = items
-    .map(({ creature, svg }) => {
+    .map(({ creature, svg, mono }) => {
       const occ = occlusions(creature);
       const facts: Array<[string, string]> = [
         ["parts", creature.parts.map((p) => `${p.id} (${p.character})`).join(", ")],
@@ -33,15 +37,21 @@ function page(items: Array<{ creature: Creature; svg: string }>): string {
             .flatMap((p) => (p.relations ?? []).map((r) => `${p.id} ${r.is.replace(/-/g, " ")} ${r.to}`))
             .join(" · "),
         ],
+        ["habitat", `${creature.palette.body} — ${creature.palette.habitat}`],
+        ["purpose", creature.notes.purpose],
+        ["trace of time", creature.notes.traceOfTime],
+        ["order", creature.notes.order],
+        ["deviation", creature.notes.deviation],
+        ["way of living", creature.notes.wayOfLiving],
+        ["suggests", creature.notes.suggestedUse],
         ["centre of gravity", creature.notes.centreOfGravity],
-        ["movement", creature.notes.imaginedMovement],
-        ["awkwardness", creature.notes.awkwardness],
         ["charm", creature.notes.charm],
+        ["why it gets pocketed", creature.notes.whyPocketed],
         ["as an object", creature.notes.asObject],
       ];
       return `
   <article>
-    <div class="stage">${svg}</div>
+    <div class="stage"><div class="colour">${svg}</div><div class="mono" hidden>${mono}</div></div>
     <h2>${escape(creature.title)}</h2>
     <dl>${facts.map(([k, v]) => `<div><dt>${escape(k)}</dt><dd>${escape(v)}</dd></div>`).join("")}</dl>
   </article>`;
@@ -76,26 +86,30 @@ function page(items: Array<{ creature: Creature; svg: string }>): string {
        padding-top:3px; white-space:nowrap; }
   dd { margin:0; }
   body.dark { --paper:#22252c; --ink:#f4f0e7; --stone:#444852; --muted:#9ca2b3; }
-  body.dark .stage { background:#f4f0e7; }
-  body.invert .stage svg path[fill="#1c1d1c"] { fill:#2f4f8a; }
+  .stage { background:transparent; padding:0; }
+  .stage svg { width:100%; height:100%; }
 </style></head>
 <body>
 <header>
-  <h1>Volume prototypes</h1>
-  <p class="sub">Three hand-designed bodies. No randomness, nothing published. Testing whether depth, occlusion and structural white lines hold up.</p>
+  <h1>Six objects, purpose unknown</h1>
+  <p class="sub">Six objects of unknown purpose, found together. Each was designed from a function first and given its wear, breaks and accretions afterwards. No fixed scale — each should hold at 5cm or 50cm. No randomness, nothing published.</p>
   <div class="controls">
     <label><input type="checkbox" id="dark"> dark surround</label>
-    <label><input type="checkbox" id="invert"> single colour swap</label>
+    <label><input type="checkbox" id="mono"> flat ink</label>
   </div>
 </header>
 <main>
 ${cards}
 </main>
 <script>
-  for (const id of ['dark','invert']) {
-    document.getElementById(id).addEventListener('change', e =>
-      document.body.classList.toggle(id, e.target.checked));
-  }
+  document.getElementById('dark').addEventListener('change', e =>
+    document.body.classList.toggle('dark', e.target.checked));
+  document.getElementById('mono').addEventListener('change', e => {
+    for (const stage of document.querySelectorAll('.stage')) {
+      stage.querySelector('.colour').hidden = e.target.checked;
+      stage.querySelector('.mono').hidden = !e.target.checked;
+    }
+  });
 </script>
 </body></html>
 `;
@@ -103,17 +117,21 @@ ${cards}
 
 function main() {
   mkdirSync(OUT, { recursive: true });
-  const creatures = [prototypeA, prototypeB, prototypeC];
+  const creatures = [prototypeA, prototypeB, prototypeC, prototypeD, prototypeE, prototypeF];
   const items = creatures.map((creature) => {
-    const svg = renderCreature(creature, { colors: INK });
+    // Two renderings: the creature in its own habitat colour, and the same
+    // body in flat ink — a body that only works in colour is not finished.
+    const svg = renderCreature(creature, { colors: creature.palette });
+    const mono = renderCreature(creature, { colors: MONO });
+    writeFileSync(join(OUT, `${creature.id}-mono.svg`), mono, "utf8");
     writeFileSync(join(OUT, `${creature.id}.svg`), svg, "utf8");
-    return { creature, svg };
+    return { creature, svg, mono };
   });
 
   const path = join(OUT, "index.html");
   writeFileSync(path, page(items), "utf8");
 
-  process.stdout.write(`\nThree prototypes written\n`);
+  process.stdout.write(`\nPrototypes written\n`);
   for (const { creature } of items) {
     const occ = occlusions(creature);
     process.stdout.write(

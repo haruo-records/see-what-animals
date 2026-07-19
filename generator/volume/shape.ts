@@ -29,6 +29,52 @@ const norm = (a: Vec): Vec => {
 };
 
 /**
+ * A CLOSED SMOOTH CURVE through every point, in cubic Béziers.
+ *
+ * This replaces corner-rounding as the default. A polygon with rounded corners
+ * always reads as a polygon that has been softened — the straight runs between
+ * corners survive, and straight runs are what make a form look cut or
+ * fabricated. A curve that passes through its points has no straight runs at
+ * all unless one is asked for, so the outline reads as something that grew to
+ * that shape rather than something trimmed to it.
+ *
+ * Sharpness stays available and stays deliberate: a point marked sharp gets a
+ * corner, because its neighbouring tangents are dropped. Smooth everywhere is a
+ * circle; sharp everywhere is a crystal. Both are available and neither is the
+ * default.
+ *
+ * Catmull-Rom, converted to cubic control points. No arc commands anywhere.
+ */
+export function smoothClosed(points: Vec[], sharp: boolean[] = []): string {
+  const n = points.length;
+  if (n < 3) return "";
+
+  const at = (i: number): Vec => points[((i % n) + n) % n];
+  const isSharp = (i: number): boolean => sharp[((i % n) + n) % n] ?? false;
+
+  let d = `M ${r2(points[0][0])} ${r2(points[0][1])}`;
+
+  for (let i = 0; i < n; i++) {
+    const p0 = at(i - 1);
+    const p1 = at(i);
+    const p2 = at(i + 1);
+    const p3 = at(i + 2);
+
+    // A sharp vertex simply refuses its tangent, which collapses the curve into
+    // a corner on that side while the rest of the outline stays smooth.
+    const c1: Vec = isSharp(i)
+      ? p1
+      : [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: Vec = isSharp(i + 1)
+      ? p2
+      : [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+
+    d += ` C ${r2(c1[0])} ${r2(c1[1])} ${r2(c2[0])} ${r2(c2[1])} ${r2(p2[0])} ${r2(p2[1])}`;
+  }
+  return d + " Z";
+}
+
+/**
  * A closed path through `points`, with each corner cut back by its radius and
  * bridged by a quadratic through the original vertex.
  *

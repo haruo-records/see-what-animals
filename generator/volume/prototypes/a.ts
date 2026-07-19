@@ -1,129 +1,98 @@
 import type { Creature, Part } from "../types";
-import { ring } from "../shape";
-import { layer, press } from "../relate";
+import { stalk, chip, nub, leaning, swell, pressed, becomes, flat, grows } from "../mass";
+import { KIND } from "../palette";
+import { press } from "../relate";
 
 /**
- * PROTOTYPE A — a rigid part and a soft part biting into one another.
+ * PURPOSE, decided first: TO BEAR A LOAD.
  *
- * The slab has gone into the swelling far enough that neither could now be
- * removed without the other giving way. Which one arrived first is not
- * decidable, and that is the intent: the boundary between them is a place where
- * the body changes character, not a joint where two objects were fitted.
+ * Everything follows from that and nothing was drawn before it. A thing whose
+ * job is to take weight is squat, is widest where the load arrives, spreads at
+ * the bottom, and goes flat on top where the load has been sitting. The flat is
+ * not a design decision; it is the record of the job.
+ *
+ * One corner has gone. Whatever it was bearing shifted once, and the block took
+ * it at the edge.
  */
 
-const softMass: Part = {
-  id: "soft-mass",
-  character: "swollen",
-  // An irregular ring: no two radii equal, so it never settles into an ellipse.
-  outline: ring(430, 520, [252, 228, 268, 206, 244, 222, 262, 236]),
-  // Rounded heavily everywhere — this part is all give.
-  rounding: [120, 105, 130, 95, 118, 100, 126, 110],
-  depth: 0,
-  openings: [
-    {
-      // An opening low on the swelling, irregular and half-covered by the slab
-      // once that is painted over it. A partly hidden opening reads as a body
-      // with an inside; a clean full ellipse reads as a pipe.
-      outline: [
-        [470, 452],
-        [556, 470],
-        [572, 528],
-        [516, 552],
-        [462, 520],
-      ],
-      rounding: [34, 12, 40, 26, 18],
-      rim: 7,
-    },
-  ],
-  relations: [{ to: "rigid-slab", is: "encloses" }],
-};
-
-const rigidSlab: Part = {
-  id: "rigid-slab",
-  character: "rigid",
-  // Four corners, no two edges parallel: a slab that was never machined.
-  outline: [
-    [548, 306],
-    [842, 366],
-    [806, 486],
-    [524, 432],
-  ],
-  // Sharp at two corners, soft at two. Hard and soft inside one outline.
-  rounding: [12, 44, 9, 30],
+const block: Part = {
+  id: "bearing-block",
+  character: "compressed mass",
+  outline: chip(
+    stalk(
+      leaning([328, 452], -3, 8, 348, 9),
+      // Broadly flattened on top across the whole bearing face — worn, not
+      // shaped. A single dip would read as a cup; a long flat reads as use.
+      pressed(swell(122, 30, 0.46, 0.7), 0.52, 0.34, 0.42),
+      // Spreading toward the base, where the weight has to go somewhere.
+      becomes(swell(108, 26, 0.4, 0.6), grows(118, 152, 1.3), 0.55, 0.45),
+    ),
+    // The break: a straight facet across one upper corner.
+    0.09,
+    0.1,
+  ),
   depth: 1,
   edges: [
     {
-      // The near edge of its thickness: the face that turns away underneath.
+      // The near edge of the bearing face, showing the block has a top surface
+      // and not just a silhouette.
       points: [
-        [556, 402],
-        [700, 432],
-        [800, 446],
+        [386, 402],
+        [520, 386],
+        [636, 406],
       ],
-      rounding: [0, 30, 0],
-      weight: 9,
+      weight: 11,
     },
   ],
-  relations: [{ to: "soft-mass", is: "wedges-into" }],
+  relations: [{ to: "left-foot", is: "rests-on" }],
 };
 
-const trailingVolume: Part = {
-  id: "trailing-volume",
-  character: "tapered",
-  // Comes out from behind the swelling and thins as it goes.
-  outline: [
-    [352, 572],
-    [258, 664],
-    [126, 812],
-    [92, 774],
-    [206, 632],
-    [300, 512],
-  ],
-  rounding: [48, 14, 58, 22, 12, 54],
-  depth: -1,
-  relations: [
-    { to: "soft-mass", is: "passes-behind" },
-    { to: "soft-mass", is: "trails-behind" },
-  ],
+const leftFoot: Part = {
+  id: "left-foot",
+  character: "supporting nub",
+  outline: nub([414, 596], 84, 96, 62),
+  depth: 0,
+  relations: [{ to: "bearing-block", is: "supports" }],
 };
 
-const caughtWedge: Part = {
-  id: "caught-wedge",
-  character: "wedged",
-  // Small, angular, sitting on the slab's far end and overhanging it.
-  outline: [
-    [790, 344],
-    [884, 378],
-    [858, 452],
-    [806, 424],
-  ],
-  rounding: [6, 40, 8, 22],
+const rightFoot: Part = {
+  id: "right-foot",
+  character: "supporting nub",
+  // The pair is a pair, but this one has spread wider under the load.
+  outline: nub([618, 600], 96, 84, 76),
   depth: 2,
-  relations: [{ to: "rigid-slab", is: "rests-on" }],
+  relations: [{ to: "bearing-block", is: "supports" }],
 };
 
-const ordered = layer([trailingVolume, softMass, rigidSlab, caughtWedge]);
+const accreted: Part = {
+  id: "accreted-lobe",
+  character: "clinging lobe",
+  // Something attached itself to the flank and stayed. It has nothing to do
+  // with bearing loads, which is precisely why it is worth looking at.
+  outline: stalk(leaning([642, 466], -34, 26, 104, 5), swell(44, 16, 0.5, 0.6), swell(40, 14, 0.62, 0.6)),
+  depth: 3,
+  relations: [{ to: "bearing-block", is: "rests-on" }],
+};
 
 export const prototypeA: Creature = {
   id: "prototype-a",
-  title: "Prototype A",
-  parts: [
-    ordered[0],
-    ordered[1],
-    // Pressed in until the two genuinely interpenetrate. A slab that stopped
-    // at the swelling's edge would read as two objects set side by side.
-    press(ordered[2], ordered[1], 26),
-    ordered[3],
-  ],
+  title: "A — the one worn flat across the top",
+  palette: KIND,
+  parts: [leftFoot, block, rightFoot, press(accreted, block, 16)],
   notes: {
-    centreOfGravity:
-      "Low and left, inside the swelling — but the slab and the wedge both sit high and right, so the mass and the weight of incident are at opposite ends.",
-    imaginedMovement:
-      "It cannot travel. It could rock on the swelling, and the slab would swing the whole thing further than intended each time.",
-    awkwardness:
-      "The slab is in too far to come out and too far in to be ignored. The tapered part behind is always a little late.",
+    purpose: "To bear a load. Widest where weight arrives, spread at the base, flat where the weight sat.",
+    traceOfTime:
+      "The bearing face is worn flat across its whole width. One upper corner has broken away on a straight facet. Something has since attached itself to the right flank and stayed.",
+    order: "Bilateral. One block on a pair of feet.",
+    deviation: "The right foot has spread wider and shorter than its opposite, under a load that was never centred.",
+    wayOfLiving: "It takes weight. It has been taking weight long enough to be a different shape for it.",
+    suggestedUse: "Something rested on this, repeatedly, for a very long time.",
+    centreOfGravity: "Low and slightly right, over the spread foot.",
     charm:
-      "It is carrying something it did not choose and has stopped minding. The opening low on the swelling is half covered by the slab, so even its own inside is partly not its business any more.",
+      "It lost a corner at some point and carried on doing the job, and something unrelated has moved in on one side.",
     asObject:
-      "About 30cm. A soft resin swelling, a slab of something denser pushed into it, one tapered arm reaching back behind. It would stand on the swelling and lean.",
+      "Works at 5cm in bronze on a desk and at 50cm in cast stone in a yard. Nothing about it depends on being small.",
+    whyPocketed:
+      "It has a flat that is obviously wear and a break that is obviously a break. Both say it was used, and neither says what for.",
   },
 };

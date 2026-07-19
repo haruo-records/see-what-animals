@@ -1,6 +1,6 @@
 import type { Creature, Part } from "./types";
 import type { Vec } from "./types";
-import { outlinePath, edgePath, bounds } from "./shape";
+import { smoothClosed, edgePath, bounds } from "./shape";
 
 /**
  * OCCLUSION RENDERING.
@@ -40,42 +40,44 @@ const BOUNDARY = 17;
 const escapeAttr = (v: string | number): string =>
   String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export type Ink = { ink: string; paper: string };
+import type { Palette } from "./palette";
+import { MONO } from "./palette";
 
-export const INK: Ink = { ink: "#1c1d1c", paper: "#ffffff" };
+/** Retained so a body can still be checked as flat ink for print. */
+export const INK = MONO;
 
 /** Parts, far to near. A stable sort keeps authored order within one depth. */
 function sorted(parts: Part[]): Part[] {
   return [...parts].map((p, i) => ({ p, i })).sort((a, b) => a.p.depth - b.p.depth || a.i - b.i).map((x) => x.p);
 }
 
-function partMarkup(part: Part, colors: Ink): string {
-  const d = outlinePath(part.outline, part.rounding);
+function partMarkup(part: Part, colors: Palette): string {
+  const d = smoothClosed(part.outline, part.sharp ?? []);
   const out: string[] = [];
 
   // The halo. Visible only where this part covers another.
   out.push(
-    `    <path d="${escapeAttr(d)}" fill="none" stroke="${colors.paper}" stroke-width="${BOUNDARY}" stroke-linejoin="round"/>`,
+    `    <path d="${escapeAttr(d)}" fill="none" stroke="${colors.ground}" stroke-width="${BOUNDARY}" stroke-linejoin="round"/>`,
   );
   // The mass.
-  out.push(`    <path d="${escapeAttr(d)}" fill="${colors.ink}"/>`);
+  out.push(`    <path d="${escapeAttr(d)}" fill="${colors.body}"/>`);
 
   // Openings: a void in this part, with an optional ink rim for wall thickness.
   for (const opening of part.openings ?? []) {
-    const od = outlinePath(opening.outline, opening.rounding);
+    const od = smoothClosed(opening.outline, opening.sharp ?? []);
     if (opening.rim && opening.rim > 0) {
       out.push(
-        `    <path d="${escapeAttr(od)}" fill="none" stroke="${colors.ink}" stroke-width="${opening.rim * 2}" stroke-linejoin="round"/>`,
+        `    <path d="${escapeAttr(od)}" fill="none" stroke="${colors.body}" stroke-width="${opening.rim * 2}" stroke-linejoin="round"/>`,
       );
     }
-    out.push(`    <path d="${escapeAttr(od)}" fill="${colors.paper}"/>`);
+    out.push(`    <path d="${escapeAttr(od)}" fill="${colors.ground}"/>`);
   }
 
   // The part's own boundaries: a crease, the edge of a thickness, a surface
   // turning away. Declared by the part because only the part knows its form.
   for (const edge of part.edges ?? []) {
     out.push(
-      `    <path d="${escapeAttr(edgePath(edge.points, edge.rounding))}" fill="none" stroke="${colors.paper}" stroke-width="${edge.weight ?? BOUNDARY * 0.8}" stroke-linecap="round" stroke-linejoin="round"/>`,
+      `    <path d="${escapeAttr(edgePath(edge.points))}" fill="none" stroke="${colors.ground}" stroke-width="${edge.weight ?? BOUNDARY * 0.8}" stroke-linecap="round" stroke-linejoin="round"/>`,
     );
   }
 
@@ -84,10 +86,10 @@ function partMarkup(part: Part, colors: Ink): string {
 
 export function renderCreature(
   creature: Creature,
-  options: { size?: number; colors?: Ink; margin?: number } = {},
+  options: { size?: number; colors?: Palette; margin?: number } = {},
 ): string {
   const size = options.size ?? 1200;
-  const colors = options.colors ?? INK;
+  const colors = options.colors ?? MONO;
   const margin = options.margin ?? 0.14;
 
   const order = sorted(creature.parts);
@@ -106,6 +108,7 @@ export function renderCreature(
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img">`,
     `  <title>${escapeAttr(creature.title)}</title>`,
+    `  <rect width="${size}" height="${size}" fill="${colors.ground}"/>`,
     `  <g transform="translate(${dx.toFixed(2)} ${dy.toFixed(2)}) scale(${scale.toFixed(4)})">`,
     body,
     `  </g>`,
@@ -137,7 +140,7 @@ function pointInPolygon(pt: Vec, poly: Vec[]): boolean {
 }
 
 /** Fraction of `a` that lies inside `b`, by sampling a's extent. */
-function overlapFraction(a: Vec[], b: Vec[], steps = 40): number {
+function fractionInside(a: Vec[], b: Vec[], steps = 40): number {
   const ba = bounds(a);
   let inA = 0;
   let inBoth = 0;
@@ -150,6 +153,19 @@ function overlapFraction(a: Vec[], b: Vec[], steps = 40): number {
     }
   }
   return inA === 0 ? 0 : inBoth / inA;
+}
+
+/**
+ * How much two parts share, measured against the SMALLER of them.
+ *
+ * Measuring against one nominated part hides the common case: a small part
+ * driven deep into a large one covers almost none of the large one, so the
+ * overlap reads as one per cent and the report says the parts do not meet.
+ * Whether a boundary appears depends on the smaller part being substantially
+ * in, not on the larger part being substantially covered.
+ */
+function overlapFraction(a: Vec[], b: Vec[]): number {
+  return Math.max(fractionInside(a, b), fractionInside(b, a));
 }
 
 export type Occlusion = { front: string; behind: string; fraction: number };

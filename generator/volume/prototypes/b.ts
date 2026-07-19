@@ -1,128 +1,97 @@
 import type { Creature, Part } from "../types";
-import { ring } from "../shape";
+import { stalk, chip, leaning, swell, becomes, flat, grows } from "../mass";
+import { series } from "../growth";
+import { KIND } from "../palette";
 import { press } from "../relate";
 
 /**
- * PROTOTYPE B — a large mass on supports too small and too far to one side.
+ * PURPOSE: TO CATCH AND HOLD WHAT PASSES.
  *
- * The supports are gathered under the right of the body while most of the mass
- * hangs out to the left. It holds, which is the whole achievement; nothing
- * about the arrangement suggests it was ever going to.
+ * A thing for catching is broad across the flow and carries a row of short
+ * projections turned back against the direction of travel — anything that
+ * comes in goes past the first and is stopped by the next. The row is the
+ * working part; the body exists to hold the row in the current.
+ *
+ * One projection has snapped off at the base and left a flat.
  */
 
-const bulk: Part = {
-  id: "bulk",
-  character: "swollen",
-  // Wider left than right: the overhang is built into the mass, not added.
-  outline: ring(470, 330, [292, 236, 244, 214, 258, 268, 300, 286]),
-  rounding: [130, 96, 108, 88, 104, 118, 136, 124],
+const body: Part = {
+  id: "spread-body",
+  character: "compressed mass",
+  outline: stalk(
+    leaning([300, 546], -14, 26, 430, 10),
+    becomes(swell(96, 30, 0.34, 0.62), grows(78, 52, 1.2), 0.5, 0.44),
+    becomes(flat(88), grows(74, 44, 1.2), 0.55, 0.44),
+  ),
   depth: 1,
   edges: [
     {
-      // Where the underside turns away from the light side. It stops short of
-      // both edges: the form is shown, not outlined.
       points: [
-        [262, 452],
-        [430, 508],
-        [606, 486],
+        [372, 512],
+        [504, 452],
+        [614, 428],
       ],
-      rounding: [0, 60, 0],
       weight: 10,
     },
   ],
-  relations: [{ to: "near-support", is: "rests-on" }],
+  relations: [{ to: "catch-0", is: "carries" }],
 };
 
-const farSupport: Part = {
-  id: "far-support",
-  character: "curved-support",
-  // A bent strut. Narrow, and it meets the ground at an angle that is not
-  // the angle it leaves the body at.
-  outline: [
-    [576, 400],
-    [640, 418],
-    [688, 700],
-    [712, 792],
-    [664, 802],
-    [630, 706],
-    [560, 434],
-  ],
-  rounding: [30, 22, 18, 10, 26, 20, 34],
-  depth: 0,
-  relations: [{ to: "bulk", is: "supports" }],
-};
+/**
+ * Four catches, all leaning back the same way. The third is a stump: broken at
+ * the root, with a straight face where the rest of it used to be.
+ */
+const catches: Part[] = series(4, (i, t) => {
+  const cx = 372 + t * 250;
+  const cy = 502 - t * 96;
+  const broken = i === 2;
+  const reach = broken ? 62 : 148;
+  const raw = stalk(
+    leaning([cx, cy], -96, 34, reach, 6),
+    becomes(grows(34, 30, 1), swell(38, 12, 0.8, 0.34), 0.5, 0.5),
+    becomes(grows(32, 28, 1), swell(34, 10, 0.8, 0.34), 0.5, 0.5),
+  );
+  return broken ? chip(raw, 0.42, 0.2, 0.02) : raw;
+}).map((outline, i) => ({
+  id: `catch-${i}`,
+  character: i === 2 ? "growing ridge" : "clinging lobe",
+  outline,
+  depth: i < 2 ? 0 : 2,
+  relations: [{ to: "spread-body", is: i === 2 ? "remains-slightly-detached" : "rests-on" }],
+}));
 
-const nearSupport: Part = {
-  id: "near-support",
-  character: "curved-support",
-  // Shorter, in front, and leaning the other way. It reaches the ground first
-  // and therefore takes more than its share.
-  outline: [
-    [508, 396],
-    [566, 414],
-    [594, 690],
-    [612, 754],
-    [556, 766],
-    [534, 692],
-    [488, 428],
-  ],
-  rounding: [26, 18, 14, 34, 20, 16, 28],
-  depth: 2,
-  edges: [
-    {
-      // The near face of the strut, showing it has a thickness.
-      points: [
-        [528, 520],
-        [560, 690],
-      ],
-      rounding: [0, 0],
-      weight: 8,
-    },
-  ],
-  relations: [{ to: "bulk", is: "supports" }],
-};
-
-const overhang: Part = {
-  id: "overhang",
-  character: "hanging",
-  // Out past the left edge of the mass, with nothing beneath it at all.
-  outline: [
-    [232, 388],
-    [176, 466],
-    [126, 606],
-    [166, 636],
-    [214, 512],
-    [268, 440],
-  ],
-  rounding: [42, 20, 50, 24, 16, 46],
-  depth: 0,
-  relations: [
-    { to: "bulk", is: "hangs-from" },
-    { to: "bulk", is: "pulls-sideways" },
-  ],
+const anchor: Part = {
+  id: "anchor-end",
+  character: "anchored mass",
+  outline: stalk(
+    leaning([282, 556], 28, 16, 190, 7),
+    becomes(swell(64, 24, 0.44, 0.62), flat(50), 0.6, 0.42),
+    grows(60, 44, 0.9),
+  ),
+  depth: 3,
+  relations: [{ to: "spread-body", is: "supports" }],
 };
 
 export const prototypeB: Creature = {
   id: "prototype-b",
-  title: "Prototype B",
-  parts: [
-    overhang,
-    farSupport,
-    bulk,
-    // Pressed up into the mass so the strut disappears into it rather than
-    // stopping at its edge — the difference between a leg and a stand.
-    press(nearSupport, bulk, 34),
-  ],
+  title: "B — the one with a row of catches and a stump",
+  palette: KIND,
+  parts: [...catches, body, press(anchor, body, 20)],
   notes: {
-    centreOfGravity:
-      "Well to the left of both supports, out over the overhang. On paper it should topple; it evidently does not.",
-    imaginedMovement:
-      "It can shuffle by lifting one support at a time, and each time the overhang swings and has to be waited for.",
-    awkwardness:
-      "Everything that holds it up is on one side and everything it is carrying is on the other. The two supports do not agree on an angle.",
+    purpose:
+      "To catch and hold what passes. Broad across the flow, with a row of short projections all leaning back against it.",
+    traceOfTime:
+      "The third catch snapped off at the root and left a straight face. The remaining three are visibly worn on their leading side.",
+    order: "Repetition. Four catches at even spacing, all at the same backward lean.",
+    deviation: "One of them is a stump, so the rhythm has a gap in it that used to be filled.",
+    wayOfLiving: "It sits across a flow and lets most things through.",
+    suggestedUse: "Something was meant to be stopped by this. Whatever it was, it was small and it kept coming.",
+    centreOfGravity: "Low and left, over the anchored end. The working row is out over nothing.",
     charm:
-      "Two thin things doing the work of something much sturdier, entirely without comment. It is out past its own balance and has not noticed.",
+      "Three catches doing the work of four, in a row that still reads as a row, entirely unbothered about the gap.",
     asObject:
-      "About 30cm. A heavy upper mass in one material, two slim struts of another entering it from below, and a limb hanging clear on the far side.",
+      "At 5cm it is a curious brooch-like thing; at 50cm it is unmistakably a piece of equipment. Both are true of it.",
+    whyPocketed:
+      "The broken stump is the interesting part. Something is missing, and the shape of what is left says roughly how big it was.",
   },
 };

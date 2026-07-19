@@ -13,17 +13,43 @@
 
 export type Vec = [number, number];
 
-/** How a part behaves as matter. Not what it is. */
+/**
+ * What a part IS TO THE BODY — an organ of unknown function, never a component.
+ *
+ * "Supporting arm" and "floating chamber" are read as parts of a creature;
+ * "rod" and "cylinder" are read as stock. The vocabulary is doing real work
+ * here, because it decides what the next form gets designed as.
+ */
 export type PartCharacter =
-  | "swollen"
-  | "compressed"
-  | "tapered"
-  | "folded"
-  | "rigid"
-  | "curved-support"
-  | "hollow"
-  | "wedged"
-  | "hanging";
+  | "swollen mass"
+  | "compressed mass"
+  | "folded mass"
+  | "soft fold"
+  | "rigid fold"
+  | "bulging shell"
+  | "nested shell"
+  | "supporting arm"
+  | "hanging arm"
+  | "carried mass"
+  | "enclosing mass"
+  | "drifting fin"
+  | "anchored part"
+  | "filtering part"
+  | "floating chamber"
+  | "spiral growth"
+  | "layered growth"
+  | "partially unfolded volume"
+  | "compressed cavity"
+  | "growing ridge"
+  | "soft fold"
+  | "hanging lobe"
+  | "supporting nub"
+  | "folded flap"
+  | "bulging pad"
+  | "trailing tendril"
+  | "anchored mass"
+  | "clinging lobe"
+  | "resting bulge";
 
 /** How one part stands toward another. Not how it is fastened. */
 export type Relation =
@@ -55,8 +81,7 @@ export type Relation =
  */
 export type Opening = {
   outline: Vec[];
-  /** Corner rounding per vertex, in units. 0 is a sharp corner. */
-  rounding: number[];
+  sharp?: boolean[];
   /** A rim of ink around the opening, suggesting wall thickness. 0 for none. */
   rim?: number;
 };
@@ -71,7 +96,6 @@ export type Opening = {
  */
 export type FaceEdge = {
   points: Vec[];
-  rounding?: number[];
   /** Slightly finer than an occlusion boundary: it divides less. */
   weight?: number;
 };
@@ -82,12 +106,10 @@ export type Part = {
   /** Closed outline in composition coordinates. */
   outline: Vec[];
   /**
-   * Corner rounding per vertex. This is the single mechanism that keeps
-   * straight and curved in the same outline: a large radius on one vertex and
-   * zero on the next gives a form that is part slab and part swell. A shape
-   * rounded everywhere is a capsule; a shape rounded nowhere is a crystal.
+   * Which vertices are corners. Everything unmarked is smooth, so a form is
+   * continuous by default and sharp only where the body actually has an edge.
    */
-  rounding: number[];
+  sharp?: boolean[];
   /**
    * Painting order. Higher is nearer the viewer. There is no camera and no
    * projection matrix — depth here means only "which part covers which", which
@@ -103,13 +125,31 @@ export type Part = {
 export type Creature = {
   id: string;
   title: string;
+  /** The kind's colour, which says where it lives and nothing else. */
+  palette: import("./palette").Palette;
   parts: Part[];
   /** Author's notes, reported back and never drawn. */
   notes: {
+    /**
+     * WHAT IT EXISTS TO DO. Decided before any geometry, because a form derived
+     * from a purpose carries the purpose even when nobody can name it, and a
+     * form arrived at first and explained afterwards never does.
+     */
+    purpose: string;
+    /** What has happened to it since: wear, breakage, arrest, accretion. */
+    traceOfTime: string;
+    /** The order the body keeps: bilateral, radial, segmented, spiral. */
+    order: string;
+    /** The one place that order is not kept. */
+    deviation: string;
+    /** What it seems to spend its life doing. Never stated as a function. */
+    wayOfLiving: string;
+    /** What a viewer might guess it is for, without being told. */
+    suggestedUse: string;
     centreOfGravity: string;
-    imaginedMovement: string;
-    awkwardness: string;
     charm: string;
     asObject: string;
+    /** Why it would be picked up off the ground and taken home. */
+    whyPocketed: string;
   };
 };
