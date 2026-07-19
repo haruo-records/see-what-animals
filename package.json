@@ -15,7 +15,8 @@
     "generator:register": "tsx generator/scripts/register-work.ts",
     "generator:module-create": "tsx generator/scripts/create-module.ts",
     "generator:validate": "tsx generator/scripts/validate-generator.ts",
-    "generator:test": "tsx --test generator/tests/*.test.ts"
+    "generator:test": "tsx --test generator/tests/*.test.ts",
+    "generator:prototypes": "tsx generator/scripts/build-prototypes.ts"
   },
   "dependencies": {
     "next": "^14.2.30",
