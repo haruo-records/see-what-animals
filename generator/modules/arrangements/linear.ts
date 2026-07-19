@@ -8,6 +8,8 @@ export const arrangementLinear: ArrangementModule = {
   version: 1,
   label: "linear",
   enabled: true,
+  // The workhorse: stubs under the base is the native posture of this language.
+  weight: 3,
   tags: ["repetition", "rigidity", "spacing"],
   parameters: {
     edge: { type: "enum", values: ["top", "bottom", "left", "right"], default: "bottom" },

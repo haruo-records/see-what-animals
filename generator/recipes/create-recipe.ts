@@ -83,11 +83,11 @@ function constraintPreferences(constraint: CompositionConstraint): {
     case "soft-against-rigid":
       return { motion: "free" };
     case "repetition-with-one-exception":
-      return { body: "body-segmented-01", motion: "free" };
+      return { body: "body-stack-01", motion: "free" };
     case "outline-still-interior-moves":
       return { motion: "required" };
     case "space-as-a-component":
-      return { body: "body-ring-01", motion: "free" };
+      return { body: "body-arch-01", motion: "free" };
     case "almost-touching":
       return { transformation: "transformation-asymmetric-gap-01", motion: "free" };
     case "one-disturbance-in-a-cycle":
@@ -199,7 +199,7 @@ export function createRecipe(seed: string, candidateId: string, options: { stati
       const picked = appRng.pickWeighted(pool, weightOf);
       chosenAppendages.push(picked);
       chosen.push(picked.id);
-      forcedAppendageCount = appRng.int(3, RULES.appendagePlacements.max);
+      forcedAppendageCount = appRng.int(2, RULES.appendagePlacements.max);
     } else {
       const patternPool = enabledPatterns.filter((m) => isCompatibleWithAll(m.id, chosen));
       if (patternPool.length === 0) {

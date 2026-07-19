@@ -7,7 +7,10 @@ export const arrangementNested: ArrangementModule = {
   category: "arrangement",
   version: 1,
   label: "nested",
-  enabled: true,
+  // Disabled in the mass-based language: an inward placement puts ink inside
+  // ink, which is invisible. Kept registered as the standing test that disabled
+  // modules are never chosen.
+  enabled: false,
   tags: ["layer", "density", "shape"],
   parameters: {
     depth: { type: "number", min: 0.15, max: 0.5, default: 0.3 },

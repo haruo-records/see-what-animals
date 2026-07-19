@@ -8,6 +8,8 @@ export const arrangementRadial: ArrangementModule = {
   version: 1,
   label: "radial",
   enabled: true,
+  // Rare on purpose: a full radial burst reads as an emblem, not a being.
+  weight: 1,
   tags: ["symmetry", "repetition", "shape"],
   parameters: {
     startAngle: { type: "number", min: -3.14, max: 3.14, default: -1.57 },

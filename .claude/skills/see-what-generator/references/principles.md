@@ -1,5 +1,18 @@
 # Aesthetic commitments
 
+> **Form-language v2 (generator 0.2.0).** A work is 2–5 solid ink masses with
+> paper-coloured seams and openings, standing slightly wrong, with at most
+> three small auxiliary parts. Not a creature with features; a stray component
+> that happens to seem alive. The v1 thin-line language was retired because it
+> read as abstract drawing, not as the animals.
+>
+> The white lines carry the volume. Three systems, at most ONE per mass:
+> an interior contour (an inset echo of the silhouette — the rim of a
+> thickness the flat plane is not showing), curved ribs (segment lines that
+> bow the way lines wrap a rounded thing — never dead straight), and a coil
+> (one continuous winding line). Straight bands read as a barcode; a bowed
+> one says girth.
+
 These are not style preferences. They are the reason the project exists, and
 each one is enforced somewhere in code.
 

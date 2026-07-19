@@ -11,8 +11,15 @@ import { allModules, getModule } from "../registry/module-registry";
 export const RULES = {
   /** Exactly one body and one arrangement, always. */
   appendageKinds: { min: 0, max: 2 },
-  /** Total placements across all appendage kinds. */
-  appendagePlacements: { min: 0, max: 12 },
+  /**
+   * Total placements across all appendage kinds. The redesigned language works
+   * in twos and threes — a mass with four stubs and a stray ring is already a
+   * busy composition. The first v2 batch proved this empirically: candidates
+   * with five auxiliary parts scattered by a radial arrangement measured 10–15
+   * separate ink components — a swarm, which is the one texture the originals
+   * never have. Three is the ceiling the source material itself keeps to.
+   */
+  appendagePlacements: { min: 0, max: 3 },
   patternKinds: { min: 0, max: 2 },
   transformations: { min: 1, max: 3 },
   /**
@@ -23,7 +30,7 @@ export const RULES = {
    */
   minSecondaryKinds: 1,
   /** Beyond this the drawing stops being a form and becomes texture. */
-  maxElements: 220,
+  maxElements: 120,
   /** Share of the canvas the drawing must occupy: not a speck, not wall to wall. */
   coverage: { min: 0.06, max: 0.82 },
   /** How many times to retry before giving up on a candidate. Never unbounded. */
@@ -75,12 +82,19 @@ export const ALLOWED_TAGS: VisualTag[] = [
  * than inferred: a rule you can read is a rule you can argue with.
  */
 export const INCOMPATIBLE_PAIRS: Array<[string, string]> = [
-  // A ring is mostly hole; an inward arrangement puts appendages in empty space.
-  ["body-ring-01", "arrangement-nested-01"],
-  // A cluster has no continuous edge for a run along one side to follow.
-  ["body-cluster-01", "arrangement-linear-01"],
-  // Concentric rings inside a band read as a printing error, not a pattern.
-  ["body-ribbon-01", "pattern-rings-01"],
+  // The bend is two rotated slabs whose bounds are mostly empty corner; bands
+  // across that box land in the air, invisible, and the recipe claims a
+  // pattern it does not visibly have.
+  ["body-bend-01", "pattern-bands-01"],
+  // The arch's opening plus more openings makes it read as pegboard.
+  ["body-arch-01", "pattern-ports-01"],
+  // The bend's bounds are mostly empty corner; a winding line across that box
+  // spends most of its length invisible in the air.
+  ["body-bend-01", "pattern-coil-01"],
+  // One white-line system per mass. Ribs and a winding coil are both ways of
+  // saying "this plane has a body"; said twice at once they cancel into noise,
+  // and the source drawings never mix them on a single form.
+  ["pattern-bands-01", "pattern-coil-01"],
 ];
 
 export function isIncompatible(a: string, b: string): boolean {

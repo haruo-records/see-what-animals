@@ -10,23 +10,20 @@ import type {
   VisualModule,
 } from "./module-types";
 
-import { bodyOval } from "../modules/bodies/oval";
-import { bodyRibbon } from "../modules/bodies/ribbon";
-import { bodyCluster } from "../modules/bodies/cluster";
-import { bodyRing } from "../modules/bodies/ring";
-import { bodySegmented } from "../modules/bodies/segmented";
+import { bodyPod } from "../modules/bodies/pod";
+import { bodyStack } from "../modules/bodies/stack";
+import { bodyBend } from "../modules/bodies/bend";
+import { bodyArch } from "../modules/bodies/arch";
+import { bodyRoll } from "../modules/bodies/roll";
 
-import { appendageThinLine } from "../modules/appendages/thin-line";
-import { appendageLoop } from "../modules/appendages/loop";
-import { appendageBranch } from "../modules/appendages/branch";
-import { appendagePlate } from "../modules/appendages/plate";
-import { appendageSoftSpike } from "../modules/appendages/soft-spike";
-import { appendageShortBar } from "../modules/appendages/short-bar";
+import { auxStub } from "../modules/appendages/stub";
+import { auxRing } from "../modules/appendages/ring";
+import { auxTab } from "../modules/appendages/tab";
+import { auxPip } from "../modules/appendages/pip";
 
-import { patternDots } from "../modules/patterns/dots";
-import { patternRings } from "../modules/patterns/rings";
-import { patternStripes } from "../modules/patterns/stripes";
-import { patternRepeatedLines } from "../modules/patterns/repeated-lines";
+import { patternBands } from "../modules/patterns/bands";
+import { patternPorts } from "../modules/patterns/ports";
+import { patternCoil } from "../modules/patterns/coil";
 
 import { arrangementRadial } from "../modules/arrangements/radial";
 import { arrangementLinear } from "../modules/arrangements/linear";
@@ -47,46 +44,26 @@ import { motionFold } from "../modules/motions/fold";
 import { motionInternalShift } from "../modules/motions/internal-shift";
 import { motionSway } from "../modules/motions/sway";
 
-import { paletteInk, paletteFaint, paletteSlate } from "../modules/palettes/ink";
+import { paletteInk, paletteGraphite } from "../modules/palettes/ink";
 
 /**
  * THE REGISTRY — the one file that knows every module exists.
  *
- * Explicit imports, not a directory scan. Dynamic import would make the module
- * set depend on the filesystem at run time, which breaks bundling and makes the
- * output of a given seed depend on what happens to be on disk. A generator
- * whose results cannot be reproduced from a commit is not much use.
+ * v2 of the form language: a work is a small number of solid ink masses with
+ * paper-coloured seams, standing a little wrong, with at most a few small
+ * auxiliary parts. Bodies compose 2–5 planes themselves; appendages became
+ * auxiliary forms (stub, ring, tab, pip); patterns draw in paper colour so
+ * they exist only where they cross ink.
  *
- * Adding a module means adding two lines here. `generator:module-create` writes
- * the module file and tells you exactly what to paste.
- *
- * Nothing else in the generator imports a module directly — engine, rules and
- * renderer all go through these lookups.
+ * Explicit imports, not a directory scan — the module set must depend on the
+ * commit, not on what happens to be on disk.
  */
 
-export const bodies: BodyModule[] = [
-  bodyOval,
-  bodyRibbon,
-  bodyCluster,
-  bodyRing,
-  bodySegmented,
-];
+export const bodies: BodyModule[] = [bodyPod, bodyStack, bodyBend, bodyArch, bodyRoll];
 
-export const appendages: AppendageModule[] = [
-  appendageThinLine,
-  appendageLoop,
-  appendageBranch,
-  appendagePlate,
-  appendageSoftSpike,
-  appendageShortBar,
-];
+export const appendages: AppendageModule[] = [auxStub, auxRing, auxTab, auxPip];
 
-export const patterns: PatternModule[] = [
-  patternDots,
-  patternRings,
-  patternStripes,
-  patternRepeatedLines,
-];
+export const patterns: PatternModule[] = [patternBands, patternPorts, patternCoil];
 
 export const arrangements: ArrangementModule[] = [
   arrangementRadial,
@@ -113,7 +90,7 @@ export const motions: MotionModule[] = [
   motionSway,
 ];
 
-export const palettes: PaletteModule[] = [paletteInk, paletteFaint, paletteSlate];
+export const palettes: PaletteModule[] = [paletteInk, paletteGraphite];
 
 export const allModules: VisualModule[] = [
   ...bodies,

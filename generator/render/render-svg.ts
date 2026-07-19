@@ -21,7 +21,7 @@ import type { WorkRecipe } from "../recipes/recipe-types";
  * The lower bound stops a work being a speck; the upper leaves the margin that
  * makes it read as something mounted rather than something cropped.
  */
-const FIT = { min: 0.46, max: 0.88 } as const;
+const FIT = { min: 0.46, max: 0.68 } as const;
 
 const round = (n: number): number => Math.round(n * 1000) / 1000;
 

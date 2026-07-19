@@ -9,8 +9,8 @@ export const SCHEMA_VERSION = 1 as const;
  * and each module's own `version`, these four fix the output completely: the
  * same values must always rebuild the same work.
  */
-export const GENERATOR_VERSION = "0.1.0";
-export const RULE_SET_VERSION = "1";
+export const GENERATOR_VERSION = "0.2.0";
+export const RULE_SET_VERSION = "2";
 
 export type ModuleInstance = {
   id: string;
