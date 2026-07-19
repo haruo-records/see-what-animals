@@ -94,6 +94,43 @@ function walk(dir: string): string[] {
 }
 
 /** Site-side checks: no duplicate work ids, publish dates well formed. */
+/**
+ * ORPHANED MODULE FILES.
+ *
+ * Every file under modules/ must be imported by the registry. A file that is
+ * not is dead code, and dead code here is worse than useless: it is still
+ * type-checked, so a module left behind from a retired form language breaks the
+ * production build without ever affecting a single pixel of output.
+ *
+ * That is exactly how this check came to exist. Unpacking a release over an
+ * older one leaves the previous version's modules on disk — unzipping adds and
+ * replaces, it never deletes — and thirty-nine files from three retired
+ * languages accumulated silently until `next build` failed on the first of them
+ * alphabetically. Nothing was watching for files that had stopped mattering.
+ */
+function checkOrphanedModules(issues: ValidationIssue[]) {
+  const registryPath = "generator/registry/module-registry.ts";
+  if (!existsSync(registryPath) || !existsSync("generator/modules")) return;
+
+  const registry = readFileSync(registryPath, "utf8");
+  const imported = new Set(
+    [...registry.matchAll(/from "\.\.\/modules\/([^"]+)"/g)].map((m) => m[1]),
+  );
+
+  for (const file of walk("generator/modules")) {
+    if (!file.endsWith(".ts")) continue;
+    const rel = file.replace(/^generator[/\\]modules[/\\]/, "").replace(/\.ts$/, "").replace(/\\/g, "/");
+    if (imported.has(rel)) continue;
+    issues.push({
+      level: "error",
+      code: "orphaned-module",
+      message:
+        `${file} is not imported by the registry. It is dead code that still breaks the build. ` +
+        `Delete it, or add it to ${registryPath}.`,
+    });
+  }
+}
+
 function checkSiteData(issues: ValidationIssue[]) {
   for (const [path, pattern, label] of [
     ["data/animal-references.ts", /id:\s*"([^"]+)"/g, "animal"],
@@ -193,6 +230,7 @@ function main(args: Args) {
 
   const issues: ValidationIssue[] = [];
   issues.push(...checkRegistryIntegrity());
+  checkOrphanedModules(issues);
   checkQuestionSpec(issues);
   checkSiteData(issues);
 
