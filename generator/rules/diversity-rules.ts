@@ -54,19 +54,20 @@ export function checkDiversity(
     return { ok: false, reason: "another candidate already has this combination" };
   }
 
-  // A quarter, not a third: at a third, two curve-based bodies could between
-  // them take two thirds of a batch and every candidate read as a variation.
-  const bodyCap = Math.max(2, Math.ceil(target / 4));
+  // One use per body while there are bodies left. With nine bodies, a batch of
+  // nine or fewer never repeats a silhouette at all; beyond that the cap rises
+  // only as far as it must.
+  const bodyCap = Math.max(1, Math.ceil(target / 9));
   if ((memory.bodies.get(recipe.modules.body.id) ?? 0) >= bodyCap) {
     return { ok: false, reason: `body ${recipe.modules.body.id} already used ${bodyCap} times` };
   }
 
-  const arrangementCap = Math.max(2, Math.ceil(target / 3));
+  const arrangementCap = Math.max(2, Math.ceil(target / 2));
   if ((memory.arrangements.get(recipe.modules.arrangement.id) ?? 0) >= arrangementCap) {
     return { ok: false, reason: `arrangement ${recipe.modules.arrangement.id} already used ${arrangementCap} times` };
   }
 
-  const constraintCap = Math.max(2, Math.ceil(target / 4));
+  const constraintCap = Math.max(1, Math.ceil(target / 9));
   if ((memory.constraints.get(recipe.composition.constraint) ?? 0) >= constraintCap) {
     return { ok: false, reason: `constraint ${recipe.composition.constraint} already used ${constraintCap} times` };
   }

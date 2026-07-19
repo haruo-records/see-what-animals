@@ -63,11 +63,12 @@ function boundsOfNode(node: SvgNode, box: Box): void {
   switch (node.tag) {
     case "path": {
       const d = String(a.d ?? "");
-      const points = pathPoints(d);
-      // With an arc present the numbers include radii; pad by the largest value
-      // seen so the true extent is certainly covered.
-      const arcPad = hasArc(d) ? Math.max(0, ...points.flat().map(Math.abs)) * 0 : 0;
-      for (const [x, y] of points) extend(box, x, y, stroke + arcPad);
+      // Generated paths contain only M/L pairs (see spineOutline), so every
+      // number really is a coordinate and this measurement is exact.
+      if (hasArc(d)) {
+        throw new Error("Path contains an arc command; bounds cannot be measured by coordinate scan");
+      }
+      for (const [x, y] of pathPoints(d)) extend(box, x, y, stroke);
       break;
     }
     case "circle": {

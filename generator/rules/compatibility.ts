@@ -9,32 +9,34 @@ import { allModules, getModule } from "../registry/module-registry";
  * each other, these judge one candidate on its own.
  */
 export const RULES = {
-  /** Exactly one body and one arrangement, always. */
-  appendageKinds: { min: 0, max: 2 },
   /**
-   * Total placements across all appendage kinds. The redesigned language works
-   * in twos and threes — a mass with four stubs and a stray ring is already a
-   * busy composition. The first v2 batch proved this empirically: candidates
-   * with five auxiliary parts scattered by a radial arrangement measured 10–15
-   * separate ink components — a swarm, which is the one texture the originals
-   * never have. Three is the ceiling the source material itself keeps to.
+   * Growths are integral, few, and optional. The previous ceiling of three
+   * small parts was still producing "a shape with two dots beside it": the
+   * grammar itself was decorative. One kind, at most two placements, and only
+   * forms that grow OUT of the body.
    */
-  appendagePlacements: { min: 0, max: 3 },
-  patternKinds: { min: 0, max: 2 },
-  transformations: { min: 1, max: 3 },
+  appendageKinds: { min: 0, max: 1 },
+  appendagePlacements: { min: 0, max: 2 },
+  /** White structure lines. Bodies already declare their own joints. */
+  patternKinds: { min: 0, max: 1 },
   /**
-   * A body on its own is not a work. The first batch produced several
-   * candidates with no appendages and no pattern: a plain arc, with a
-   * transformation that had no placements to act on and therefore did nothing.
-   * At least one secondary element must be present.
+   * Two or three deformations, never one. A single deformation reads as a
+   * neutral shape with an adjustment; two compound into a body that grew this
+   * way. This is the main defence against the almost-symmetrical look.
    */
-  minSecondaryKinds: 1,
-  /** Beyond this the drawing stops being a form and becomes texture. */
+  transformations: { min: 2, max: 3 },
   maxElements: 120,
-  /** Share of the canvas the drawing must occupy: not a speck, not wall to wall. */
-  coverage: { min: 0.06, max: 0.82 },
-  /** How many times to retry before giving up on a candidate. Never unbounded. */
-  maxAttemptsPerCandidate: 40,
+  /**
+   * Occupancy of the frame. The floor is high on purpose — a small form with a
+   * lot of air around it reads as a logo no matter how good the form is.
+   */
+  coverage: { min: 0.3, max: 0.78 },
+  /**
+   * Ink as a share of the body's own bounding box. Below this the "body" is a
+   * few thin things spread wide, which is a constellation, not an animal.
+   */
+  minDensity: 0.17,
+  maxAttemptsPerCandidate: 60,
 } as const;
 
 /**
@@ -82,19 +84,13 @@ export const ALLOWED_TAGS: VisualTag[] = [
  * than inferred: a rule you can read is a rule you can argue with.
  */
 export const INCOMPATIBLE_PAIRS: Array<[string, string]> = [
-  // The bend is two rotated slabs whose bounds are mostly empty corner; bands
-  // across that box land in the air, invisible, and the recipe claims a
-  // pattern it does not visibly have.
-  ["body-bend-01", "pattern-bands-01"],
-  // The arch's opening plus more openings makes it read as pegboard.
-  ["body-arch-01", "pattern-ports-01"],
-  // The bend's bounds are mostly empty corner; a winding line across that box
-  // spends most of its length invisible in the air.
-  ["body-bend-01", "pattern-coil-01"],
-  // One white-line system per mass. Ribs and a winding coil are both ways of
-  // saying "this plane has a body"; said twice at once they cancel into noise,
-  // and the source drawings never mix them on a single form.
-  ["pattern-bands-01", "pattern-coil-01"],
+  // A frame is four rails; a seam running along "the primary spine" would trace
+  // one rail and read as a mistake rather than a structure.
+  ["body-crooked-frame-01", "pattern-seam-01"],
+  // Curling an already-spiral body winds it into an unreadable knot.
+  ["body-coiled-support-01", "transformation-curl-in-01"],
+  // Pinching a frame's rail severs it visually; the loop stops being a loop.
+  ["body-crooked-frame-01", "transformation-pinch-01"],
 ];
 
 export function isIncompatible(a: string, b: string): boolean {

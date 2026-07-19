@@ -1,5 +1,5 @@
 import type { MotionModule } from "../../registry/module-types";
-import { r2 } from "../shared";
+import { r2 } from "../../render/skeleton";
 
 /** A shallow swell and settle. Small enough that the outline barely moves. */
 export const motionPulse: MotionModule = {

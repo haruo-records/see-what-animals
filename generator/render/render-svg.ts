@@ -1,31 +1,36 @@
-import type { Anchor, BodyResult, DrawContext, SvgNode } from "../registry/module-types";
+import type { Anchor, BodyPlan, DrawContext, SpineNode, SvgNode } from "../registry/module-types";
 import { clampParameter, isParameterInRange } from "../registry/module-types";
 import { getModule } from "../registry/module-registry";
 import { RULES } from "../rules/compatibility";
 import { GenerationError } from "../recipes/create-recipe";
-import { measure, boxWidth, boxHeight } from "./geometry";
 import type { WorkRecipe } from "../recipes/recipe-types";
+import { measure, boxWidth, boxHeight } from "./geometry";
+import { alongSpine, crossLine, hollow, plate, spineOutline, resample } from "./skeleton";
 
 /**
- * SVG RENDERING — turns a recipe into markup. It makes no choices of its own:
- * given the same recipe it must always emit the same bytes.
+ * SVG RENDERING — turns a recipe into markup. It makes no choices of its own.
  *
- * Safety: this builds SVG from a fixed set of primitive tags with escaped
- * attribute values. There is no path by which text from a recipe can become
- * markup, no <script>, no <foreignObject>, no external reference. Nothing here
- * ever produces a string that has to be trusted.
+ * The ORDER is what changed. It used to be: draw a body, place small parts
+ * around it, then nudge those parts. That pipeline can only ever produce a
+ * fixed shape with accessories, which is the definition of an icon.
+ *
+ * Now: the body returns a PLAN, transformations deform the plan's spines, and
+ * only then is anything drawn. Bending happens to the animal, not to a list of
+ * dots beside it. Growths attach to the deformed spine, so they land where the
+ * body ended up rather than where it was originally designed.
  */
-
-/**
- * How much of the frame the finished drawing may occupy, along its longer axis.
- * The lower bound stops a work being a speck; the upper leaves the margin that
- * makes it read as something mounted rather than something cropped.
- */
-const FIT = { min: 0.46, max: 0.68 } as const;
-
-const round = (n: number): number => Math.round(n * 1000) / 1000;
 
 const SAFE_TAGS = new Set(["path", "circle", "ellipse", "rect", "line", "polyline", "g", "animateTransform"]);
+
+/**
+ * How much of the frame the finished body occupies along its longer axis.
+ * Raised sharply from the previous 0.46–0.68: a form at half the frame with
+ * generous air around it reads as a logo waiting for a wordmark, however good
+ * the form is. These are meant to be looked at, not scanned.
+ */
+const FIT = { min: 0.68, max: 0.84 } as const;
+
+const round = (n: number): number => Math.round(n * 1000) / 1000;
 
 function escapeAttr(value: string | number): string {
   return String(value)
@@ -58,8 +63,14 @@ function countElements(nodes: SvgNode[]): number {
 export type RenderResult = {
   svg: string;
   elementCount: number;
-  /** Share of the canvas the drawing's bounding box covers. */
+  /** Share of the frame the finished body's bounding box covers. */
   coverage: number;
+  /**
+   * How much of the body's own bounding box is actually ink. A few small parts
+   * spread wide scores low here even though the bounding box is large — exactly
+   * the "scattered decoration" failure that a bounding box alone cannot detect.
+   */
+  density: number;
 };
 
 function resolveParams(instanceId: string, params: Record<string, string | number | boolean>) {
@@ -73,15 +84,22 @@ function resolveParams(instanceId: string, params: Record<string, string | numbe
       resolved[key] = def.default;
       continue;
     }
-    if (!isParameterInRange(def, raw)) {
-      // Clamped rather than thrown: a recipe written before a range narrowed
-      // should still render, and validate reports the drift separately.
-      resolved[key] = clampParameter(def, raw);
-    } else {
-      resolved[key] = raw;
-    }
+    resolved[key] = isParameterInRange(def, raw) ? raw : clampParameter(def, raw);
   }
   return { module, resolved };
+}
+
+/** Rough ink area of a set of spines, for the density measure. */
+function spineArea(spines: SpineNode[][]): number {
+  let area = 0;
+  for (const s of spines) {
+    const r = resample(s, 6);
+    for (let i = 1; i < r.length; i++) {
+      const seg = Math.hypot(r[i].x - r[i - 1].x, r[i].y - r[i - 1].y);
+      area += seg * (r[i].r + r[i - 1].r);
+    }
+  }
+  return area;
 }
 
 export function renderRecipe(recipe: WorkRecipe, options: { static?: boolean } = {}): RenderResult {
@@ -104,56 +122,99 @@ export function renderRecipe(recipe: WorkRecipe, options: { static?: boolean } =
     anchors,
   });
 
-  // ── body ──────────────────────────────────────────────────────────────────
+  // ── 1. the body's plan ────────────────────────────────────────────────────
   const bodyEntry = resolveParams(recipe.modules.body.id, recipe.modules.body.parameters);
   if (bodyEntry.module.category !== "body") {
     throw new GenerationError("category-mismatch", `${recipe.modules.body.id} is not a body`);
   }
-  const body: BodyResult = bodyEntry.module.draw(baseCtx(bodyEntry.resolved));
-
-  // ── arrangement → placements ──────────────────────────────────────────────
-  const arrEntry = resolveParams(recipe.modules.arrangement.id, recipe.modules.arrangement.parameters);
-  if (arrEntry.module.category !== "arrangement") {
-    throw new GenerationError("category-mismatch", `${recipe.modules.arrangement.id} is not an arrangement`);
+  const plan: BodyPlan = bodyEntry.module.plan(baseCtx(bodyEntry.resolved));
+  if (plan.spines.length === 0 || plan.spines[0].length < 2) {
+    throw new GenerationError("empty-plan", `${recipe.modules.body.id} produced no spine`);
   }
-  let anchors: Anchor[] =
-    recipe.composition.appendageCount > 0
-      ? arrEntry.module.place(baseCtx(arrEntry.resolved), body, recipe.composition.appendageCount)
-      : [];
 
-  // ── transformations, applied in recipe order ──────────────────────────────
+  // ── 2. transformations deform the BODY ────────────────────────────────────
+  let spines = plan.spines;
   for (const t of recipe.modules.transformations) {
     const entry = resolveParams(t.id, t.parameters);
     if (entry.module.category !== "transformation") {
       throw new GenerationError("category-mismatch", `${t.id} is not a transformation`);
     }
-    anchors = entry.module.apply(baseCtx(entry.resolved, anchors), anchors);
+    spines = entry.module.apply(baseCtx(entry.resolved), spines);
+  }
+  const deformed: BodyPlan = { ...plan, spines };
+
+  // ── 3. ink: every spine as one closed outline ─────────────────────────────
+  const inkNodes: SvgNode[] = spines.map((s) => ({
+    tag: "path",
+    attrs: { d: spineOutline(s), fill: colors.ink },
+  }));
+
+  // At most one angular mass, overlapping the spine so it fuses into the body
+  // rather than sitting beside it.
+  if (deformed.plate) {
+    const at = alongSpine(spines[0], deformed.plate.t);
+    const size = deformed.plate.size;
+    const a = at.angle + deformed.plate.skew;
+    const corner = (da: number, dist: number): [number, number] => [
+      at.x + Math.cos(a + da) * dist,
+      at.y + Math.sin(a + da) * dist,
+    ];
+    inkNodes.push(
+      plate(
+        [corner(0.4, size), corner(1.9, size * 0.85), corner(3.4, size * 1.1), corner(4.9, size * 0.6)],
+        colors.ink,
+      ),
+    );
   }
 
-  // ── patterns (interior) ───────────────────────────────────────────────────
-  const patternNodes: SvgNode[] = [];
-  for (const p of recipe.modules.patterns) {
-    const entry = resolveParams(p.id, p.parameters);
-    if (entry.module.category !== "pattern") {
-      throw new GenerationError("category-mismatch", `${p.id} is not a pattern`);
+  // ── 4. growths, on the deformed body ──────────────────────────────────────
+  const growthNodes: SvgNode[] = [];
+  let anchors: Anchor[] = [];
+  if (recipe.modules.appendages.length > 0 && recipe.composition.appendageCount > 0) {
+    const arrEntry = resolveParams(recipe.modules.arrangement.id, recipe.modules.arrangement.parameters);
+    if (arrEntry.module.category !== "arrangement") {
+      throw new GenerationError("category-mismatch", `${recipe.modules.arrangement.id} is not an arrangement`);
     }
-    patternNodes.push(...entry.module.draw(baseCtx(entry.resolved), body.bounds));
-  }
+    anchors = arrEntry.module.place(baseCtx(arrEntry.resolved), deformed, recipe.composition.appendageCount);
 
-  // ── appendages, dealt round-robin across the placements ───────────────────
-  const appendageNodes: SvgNode[] = [];
-  if (recipe.modules.appendages.length > 0 && anchors.length > 0) {
     const entries = recipe.modules.appendages.map((a) => resolveParams(a.id, a.parameters));
     anchors.forEach((anchor, i) => {
       const entry = entries[i % entries.length];
       if (entry.module.category !== "appendage") {
         throw new GenerationError("category-mismatch", `${entry.module.id} is not an appendage`);
       }
-      appendageNodes.push(...entry.module.draw(baseCtx(entry.resolved, anchors), anchor, i));
+      // The growth is told how thick its host is here, so it stays proportional
+      // to the body instead of being a fixed decorative size.
+      const host = alongSpine(spines[0], 0.5).r;
+      growthNodes.push(...entry.module.grow(baseCtx(entry.resolved, anchors), anchor, host, i));
     });
   }
 
-  // ── motion ────────────────────────────────────────────────────────────────
+  // ── 5. voids and structure lines, carried along by the spine ──────────────
+  const voidNodes: SvgNode[] = deformed.voids.map((v) => {
+    const at = alongSpine(spines[0], v.t);
+    const off = v.offset ?? 0;
+    return hollow(
+      at.x + Math.cos(at.angle + Math.PI / 2) * off,
+      at.y + Math.sin(at.angle + Math.PI / 2) * off,
+      v.rx,
+      v.ry,
+      colors.light,
+      v.rotate ?? (at.angle * 180) / Math.PI,
+    );
+  });
+
+  const lineNodes: SvgNode[] = deformed.lines.map((t) => crossLine(spines[0], t, colors.light));
+
+  for (const p of recipe.modules.patterns) {
+    const entry = resolveParams(p.id, p.parameters);
+    if (entry.module.category !== "pattern") {
+      throw new GenerationError("category-mismatch", `${p.id} is not a pattern`);
+    }
+    lineNodes.push(...entry.module.draw(baseCtx(entry.resolved), deformed));
+  }
+
+  // ── 6. motion ─────────────────────────────────────────────────────────────
   let outerAnimation: SvgNode[] = [];
   let innerAnimation: SvgNode[] = [];
   if (recipe.modules.motion && !options.static) {
@@ -166,18 +227,8 @@ export function renderRecipe(recipe: WorkRecipe, options: { static?: boolean } =
     else innerAnimation = result.nodes;
   }
 
-  // ── fit ───────────────────────────────────────────────────────────────────
-  // Measure everything that was actually drawn, then place it in the frame.
-  // Modules choose their sizes independently and cannot know what else is in
-  // the composition, so a body near its maximum plus long appendages will run
-  // off the canvas. Rather than clamp every module's range — which would flatten
-  // the variety the ranges exist to provide — the finished drawing is fitted.
-  //
-  // The target is a BAND, not a single size. Fitting everything to one size
-  // would make every work the same visual weight, which is its own kind of
-  // mass-production; a band keeps small forms small and large forms large while
-  // guaranteeing both are wholly inside the frame.
-  const drawn = [...body.nodes, ...patternNodes, ...appendageNodes];
+  // ── 7. fit ────────────────────────────────────────────────────────────────
+  const drawn = [...inkNodes, ...growthNodes];
   const box = measure(drawn);
 
   let fit = { scale: 1, dx: 0, dy: 0 };
@@ -185,39 +236,21 @@ export function renderRecipe(recipe: WorkRecipe, options: { static?: boolean } =
     const extent = Math.max(boxWidth(box), boxHeight(box));
     const target = Math.min(FIT.max, Math.max(FIT.min, extent / width)) * width;
     const scale = extent > 0 ? target / extent : 1;
-    // Centre the measured content, not the canvas origin: an asymmetric work
-    // should sit centred on its own mass, not on where its body happens to be.
     const contentCx = (box.minX + box.maxX) / 2;
     const contentCy = (box.minY + box.maxY) / 2;
     fit = { scale, dx: cx - contentCx * scale, dy: cy - contentCy * scale };
   }
 
-  // ── assembly ──────────────────────────────────────────────────────────────
-  // Three nested groups:
-  //   stage    — origin at the canvas centre, so motion animates about 0,0
-  //   fitted   — the measured fit, applied once to the whole drawing
-  //   artwork  — the drawing in its own coordinates
-  const interior: SvgNode = {
-    tag: "g",
-    attrs: {},
-    children: [...innerAnimation, ...patternNodes],
-  };
-
-  const artwork: SvgNode = {
-    tag: "g",
-    attrs: {},
-    children: [...body.nodes, interior, ...appendageNodes],
-  };
-
+  // ── 8. assembly ───────────────────────────────────────────────────────────
+  // Voids and lines sit over the ink inside the same transform, so they stay
+  // registered to the body at any scale.
+  const interior: SvgNode = { tag: "g", attrs: {}, children: [...innerAnimation, ...voidNodes, ...lineNodes] };
+  const artwork: SvgNode = { tag: "g", attrs: {}, children: [...inkNodes, ...growthNodes, interior] };
   const fitted: SvgNode = {
     tag: "g",
-    attrs: {
-      transform:
-        `translate(${round(fit.dx - cx)} ${round(fit.dy - cy)}) scale(${round(fit.scale)})`,
-    },
+    attrs: { transform: `translate(${round(fit.dx - cx)} ${round(fit.dy - cy)}) scale(${round(fit.scale)})` },
     children: [artwork],
   };
-
   const stage: SvgNode = {
     tag: "g",
     attrs: { transform: `translate(${cx} ${cy})` },
@@ -226,27 +259,21 @@ export function renderRecipe(recipe: WorkRecipe, options: { static?: boolean } =
 
   const elementCount = countElements([stage]);
   if (elementCount > RULES.maxElements) {
-    throw new GenerationError(
-      "too-complex",
-      `${elementCount} elements exceeds the ceiling of ${RULES.maxElements}`,
-    );
+    throw new GenerationError("too-complex", `${elementCount} elements exceeds the ceiling of ${RULES.maxElements}`);
   }
 
-  // Coverage is the share of the frame the finished drawing occupies, measured
-  // after the fit from what was really emitted — not from the body's own idea
-  // of its size, which ignores everything attached to it.
-  const coverage = box
-    ? (boxWidth(box) * fit.scale * (boxHeight(box) * fit.scale)) / (width * height)
-    : 0;
+  const boxW = box ? boxWidth(box) * fit.scale : 0;
+  const boxH = box ? boxHeight(box) * fit.scale : 0;
+  const coverage = (boxW * boxH) / (width * height);
+  const density = boxW * boxH > 0 ? Math.min(1, (spineArea(spines) * fit.scale * fit.scale) / (boxW * boxH)) : 0;
 
   const svg = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${recipe.canvas.viewBox}" width="${width}" height="${height}" role="img">`,
     `  <title>An observation candidate. ${recipe.candidateId}</title>`,
-    `  <rect width="${width}" height="${height}" fill="${escapeAttr(colors.light)}" opacity="0.0"/>`,
     nodeToString(stage),
     "</svg>",
     "",
   ].join("\n");
 
-  return { svg, elementCount, coverage };
+  return { svg, elementCount, coverage, density };
 }

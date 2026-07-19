@@ -9,8 +9,8 @@ export const SCHEMA_VERSION = 1 as const;
  * and each module's own `version`, these four fix the output completely: the
  * same values must always rebuild the same work.
  */
-export const GENERATOR_VERSION = "0.2.0";
-export const RULE_SET_VERSION = "2";
+export const GENERATOR_VERSION = "0.4.0";
+export const RULE_SET_VERSION = "4";
 
 export type ModuleInstance = {
   id: string;
@@ -55,15 +55,15 @@ export type WorkRecipe = {
  * does not decide what a form is, and nothing here should tempt it to.
  */
 export const COMPOSITION_CONSTRAINTS = [
-  "one-part-absent",
-  "near-symmetry-broken-once",
-  "soft-against-rigid",
-  "repetition-with-one-exception",
-  "outline-still-interior-moves",
-  "space-as-a-component",
-  "almost-touching",
-  "one-disturbance-in-a-cycle",
-  "part-unlike-whole",
+  "heavy-end-thin-neck",
+  "supports-its-own-weight",
+  "one-joint-already-used",
+  "wound-in-on-itself",
+  "void-larger-than-body",
+  "one-side-arrived-first",
+  "trailing-what-it-cannot-drop",
+  "reaching-past-its-balance",
+  "folded-and-stuck-there",
 ] as const;
 
 export type CompositionConstraint = (typeof COMPOSITION_CONSTRAINTS)[number];

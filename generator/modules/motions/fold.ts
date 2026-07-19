@@ -1,5 +1,5 @@
 import type { MotionModule } from "../../registry/module-types";
-import { r2 } from "../shared";
+import { r2 } from "../../render/skeleton";
 
 /** A narrowing on one axis only, as if closing partway and opening again. */
 export const motionFold: MotionModule = {

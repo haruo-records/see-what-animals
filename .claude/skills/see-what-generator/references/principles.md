@@ -1,20 +1,30 @@
 # Aesthetic commitments
 
-> **Form-language v2 (generator 0.2.0).** A work is 2–5 solid ink masses with
-> paper-coloured seams and openings, standing slightly wrong, with at most
-> three small auxiliary parts. Not a creature with features; a stray component
-> that happens to seem alive. The v1 thin-line language was retired because it
-> read as abstract drawing, not as the animals.
+> **Form-language v4 (generator 0.4.0).** A body is one or more SPINES: paths
+> carrying a radius at every point, closed into filled outlines. Thickness
+> varies along the length, so a body can taper, fork, swell and pinch, and a
+> heavy mass can hang from a neck too thin for it.
 >
-> The white lines carry the volume. Three systems, at most ONE per mass:
-> an interior contour (an inset echo of the silhouette — the rim of a
-> thickness the flat plane is not showing), curved ribs (segment lines that
-> bow the way lines wrap a rounded thing — never dead straight), and a coil
-> (one continuous winding line). Straight bands read as a barcode; a bowed
-> one says girth.
-
-These are not style preferences. They are the reason the project exists, and
-each one is enforced somewhere in code.
+> Two earlier languages failed for the same underlying reason: their alphabet
+> had one letter. v1 drew thin lines and read as abstract drawing. v3 drew
+> rounded rectangles — and everything made of rounded rectangles is a capsule,
+> and capsules near each other are a logo.
+>
+> **Transformations deform the BODY, not a list of parts beside it.** This is
+> the structural fix for the icon problem. Two or three deformations compound
+> into a body that grew crooked, rather than a symmetrical shape with one
+> adjustment.
+>
+> **Growths are integral.** At most one kind, at most two, and they start
+> INSIDE the parent mass so the two fuse into one silhouette. Nothing floats
+> near the body. A dot beside a shape is a logo, every time.
+>
+> **The body fills 68–84% of the frame's longer axis.** A form at half the
+> frame with air around it reads as a logo waiting for a wordmark.
+>
+> White lines are read off the spine: cross-lines span only as far as the body
+> is thick there, and the seam runs along it, offset — never centred, because a
+> centred line halves the body into symmetry.
 
 ## Form, never meaning
 

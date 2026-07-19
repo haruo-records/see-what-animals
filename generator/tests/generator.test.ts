@@ -112,11 +112,20 @@ test("transformation and appendage counts stay inside their limits", () => {
   }
 });
 
-test("every work has at least one element beyond its body", () => {
+test("every work carries at least two deformations", () => {
+  // Two, not one: a single deformation reads as a neutral shape with an
+  // adjustment. Compounding two is what makes a body look grown rather than
+  // adjusted, and is the main defence against the almost-symmetrical look.
   for (let i = 0; i < 60; i++) {
-    const r = createRecipe(`secondary-${i}`, candidateId(i));
-    const secondary = r.modules.appendages.length + r.modules.patterns.length;
-    assert.ok(secondary >= RULES.minSecondaryKinds, `candidate ${i} has only a body`);
+    const r = createRecipe(`deform-${i}`, candidateId(i));
+    assert.ok(r.modules.transformations.length >= 2, `candidate ${i} has too few deformations`);
+  }
+});
+
+test("the body fills enough of its own bounding box to be one animal", () => {
+  for (let i = 0; i < 30; i++) {
+    const { density } = renderRecipe(createRecipe(`density-${i}`, candidateId(i)));
+    assert.ok(density >= RULES.minDensity, `candidate ${i} is only ${density.toFixed(2)} ink — a constellation, not a body`);
   }
 });
 

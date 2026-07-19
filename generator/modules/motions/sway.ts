@@ -1,5 +1,5 @@
 import type { MotionModule } from "../../registry/module-types";
-import { r2 } from "../shared";
+import { r2 } from "../../render/skeleton";
 
 /** A small tilt back and forth. It stays in place. */
 export const motionSway: MotionModule = {

@@ -89,8 +89,15 @@ export function buildBatch(options: {
       // A distinct sub-seed per attempt: retrying must move, not repeat.
       const candidateSeed = `${seed}::${id}::${attempt}`;
 
+      // Blind re-rolls first, so early candidates stay freely chosen; once that
+      // is clearly not working, tell the engine what is already spent.
+      const avoid =
+        attempt < 8
+          ? undefined
+          : { bodies: [...memory.bodies.keys()], constraints: [...memory.constraints.keys()] };
+
       try {
-        const recipe = createRecipe(candidateSeed, id, { static: options.static });
+        const recipe = createRecipe(candidateSeed, id, { static: options.static, avoid });
 
         const diversity = checkDiversity(recipe, memory, count);
         if (!diversity.ok) {

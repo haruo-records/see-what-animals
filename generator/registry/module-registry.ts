@@ -10,33 +10,32 @@ import type {
   VisualModule,
 } from "./module-types";
 
-import { bodyPod } from "../modules/bodies/pod";
-import { bodyStack } from "../modules/bodies/stack";
-import { bodyBend } from "../modules/bodies/bend";
-import { bodyArch } from "../modules/bodies/arch";
-import { bodyRoll } from "../modules/bodies/roll";
+import { bodyWeightedArc } from "../modules/bodies/weighted-arc";
+import { bodyFork } from "../modules/bodies/fork";
+import { bodyOpenShell } from "../modules/bodies/open-shell";
+import { bodySuspendedMass } from "../modules/bodies/suspended-mass";
+import { bodySplitColumn } from "../modules/bodies/split-column";
+import { bodyCoiledSupport } from "../modules/bodies/coiled-support";
+import { bodyHingedMass } from "../modules/bodies/hinged-mass";
+import { bodyCrookedFrame } from "../modules/bodies/crooked-frame";
+import { bodyDriftingPlate } from "../modules/bodies/drifting-plate";
 
-import { auxStub } from "../modules/appendages/stub";
-import { auxRing } from "../modules/appendages/ring";
-import { auxTab } from "../modules/appendages/tab";
-import { auxPip } from "../modules/appendages/pip";
+import { growthBud } from "../modules/appendages/bud";
+import { growthTendril } from "../modules/appendages/tendril";
 
-import { patternBands } from "../modules/patterns/bands";
-import { patternPorts } from "../modules/patterns/ports";
-import { patternCoil } from "../modules/patterns/coil";
+import { patternSegments } from "../modules/patterns/segments";
+import { patternSeam } from "../modules/patterns/seam";
 
-import { arrangementRadial } from "../modules/arrangements/radial";
-import { arrangementLinear } from "../modules/arrangements/linear";
-import { arrangementNested } from "../modules/arrangements/nested";
-import { arrangementAsymmetric } from "../modules/arrangements/asymmetric";
-import { arrangementAlmostSymmetrical } from "../modules/arrangements/almost-symmetrical";
+import { arrangementAlongBody } from "../modules/arrangements/along-body";
+import { arrangementAtExtremity } from "../modules/arrangements/at-extremity";
+import { arrangementOnSecondary } from "../modules/arrangements/on-secondary";
 
-import { transformationMissingPart } from "../modules/transformations/missing-part";
-import { transformationOffset } from "../modules/transformations/offset";
-import { transformationUnevenScale } from "../modules/transformations/uneven-scale";
-import { transformationPartialRotation } from "../modules/transformations/partial-rotation";
-import { transformationOverlap } from "../modules/transformations/overlap";
-import { transformationAsymmetricGap } from "../modules/transformations/asymmetric-gap";
+import { deformLean } from "../modules/transformations/lean";
+import { deformMassShift } from "../modules/transformations/mass-shift";
+import { deformKink } from "../modules/transformations/kink";
+import { deformStretch } from "../modules/transformations/stretch";
+import { deformCurlIn } from "../modules/transformations/curl-in";
+import { deformPinch } from "../modules/transformations/pinch";
 
 import { motionRotate } from "../modules/motions/rotate";
 import { motionPulse } from "../modules/motions/pulse";
@@ -49,37 +48,48 @@ import { paletteInk, paletteGraphite } from "../modules/palettes/ink";
 /**
  * THE REGISTRY — the one file that knows every module exists.
  *
- * v2 of the form language: a work is a small number of solid ink masses with
- * paper-coloured seams, standing a little wrong, with at most a few small
- * auxiliary parts. Bodies compose 2–5 planes themselves; appendages became
- * auxiliary forms (stub, ring, tab, pip); patterns draw in paper colour so
- * they exist only where they cross ink.
+ * Form-language v4. A body is one or more SPINES: paths carrying a radius at
+ * every point, closed into filled outlines. Thickness varies along the length,
+ * so a body can taper, fork, swell and pinch, and a heavy mass can hang from a
+ * neck too thin for it.
  *
- * Explicit imports, not a directory scan — the module set must depend on the
- * commit, not on what happens to be on disk.
+ * The two languages before this both failed for the same underlying reason —
+ * their alphabet had one letter. v1 drew thin lines; v3 drew rounded rectangles.
+ * Everything made of rounded rectangles is a capsule, and capsules near each
+ * other are a logo.
+ *
+ * Nine bodies, so a batch of nine or fewer never repeats a silhouette.
  */
 
-export const bodies: BodyModule[] = [bodyPod, bodyStack, bodyBend, bodyArch, bodyRoll];
+export const bodies: BodyModule[] = [
+  bodyWeightedArc,
+  bodyFork,
+  bodyOpenShell,
+  bodySuspendedMass,
+  bodySplitColumn,
+  bodyCoiledSupport,
+  bodyHingedMass,
+  bodyCrookedFrame,
+  bodyDriftingPlate,
+];
 
-export const appendages: AppendageModule[] = [auxStub, auxRing, auxTab, auxPip];
+export const appendages: AppendageModule[] = [growthBud, growthTendril];
 
-export const patterns: PatternModule[] = [patternBands, patternPorts, patternCoil];
+export const patterns: PatternModule[] = [patternSegments, patternSeam];
 
 export const arrangements: ArrangementModule[] = [
-  arrangementRadial,
-  arrangementLinear,
-  arrangementNested,
-  arrangementAsymmetric,
-  arrangementAlmostSymmetrical,
+  arrangementAlongBody,
+  arrangementAtExtremity,
+  arrangementOnSecondary,
 ];
 
 export const transformations: TransformationModule[] = [
-  transformationMissingPart,
-  transformationOffset,
-  transformationUnevenScale,
-  transformationPartialRotation,
-  transformationOverlap,
-  transformationAsymmetricGap,
+  deformLean,
+  deformMassShift,
+  deformKink,
+  deformStretch,
+  deformCurlIn,
+  deformPinch,
 ];
 
 export const motions: MotionModule[] = [

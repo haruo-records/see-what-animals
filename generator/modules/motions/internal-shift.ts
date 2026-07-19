@@ -1,5 +1,5 @@
 import type { MotionModule } from "../../registry/module-types";
-import { r2 } from "../shared";
+import { r2 } from "../../render/skeleton";
 
 /**
  * The silhouette holds completely still while the interior drifts. This is the

@@ -98,54 +98,75 @@ export type DrawContext = {
 
 export type Anchor = { x: number; y: number; angle: number };
 
-/** A body reports where things may attach and how much room it occupies. */
-export type BodyResult = {
-  nodes: SvgNode[];
-  anchors: Anchor[];
-  /** Rough bounds, used by the fit and density checks. */
-  bounds: { x: number; y: number; width: number; height: number };
+/**
+ * A BODY PLAN, not a drawing.
+ *
+ * Everything is positioned RELATIVE TO THE SPINE — voids at a fraction along
+ * it, structure lines at a fraction along it, the hard plate at a fraction
+ * along it. That is what lets transformations deform the body itself: bend the
+ * spine and the holes, joints and plate travel with it, because none of them
+ * ever knew an absolute coordinate.
+ *
+ * The old pipeline could only move small parts around a fixed body, which is
+ * why every result read as an icon with accessories. Here the transformation
+ * changes the animal.
+ */
+export type BodyPlan = {
+  /** One or more spines. Overlapping spines fuse into a single silhouette. */
+  spines: SpineNode[][];
+  /** Paper-coloured voids, placed along the primary spine. */
+  voids: Array<{ t: number; rx: number; ry: number; offset?: number; rotate?: number }>;
+  /** At most one angular mass, to set hard against soft within one body. */
+  plate?: { t: number; size: number; skew: number };
+  /** Fractions along the primary spine carrying a structure line. */
+  lines: number[];
 };
+
+export type SpineNode = { x: number; y: number; r: number };
 
 export type BodyModule = ModuleMeta & {
   category: "body";
-  draw(ctx: DrawContext): BodyResult;
+  /** Returns a plan. Bodies never emit SVG directly. */
+  plan(ctx: DrawContext): BodyPlan;
 };
 
 export type AppendageModule = ModuleMeta & {
   category: "appendage";
-  /** Drawn once per placement; `at` is supplied by the arrangement. */
-  draw(ctx: DrawContext, at: Anchor, index: number): SvgNode[];
+  /**
+   * An INTEGRAL growth, not an accessory. It is drawn in ink and must start
+   * inside the parent mass so the two fuse. `hostRadius` is the body's own
+   * thickness where it attaches, so a growth can be proportional to its host
+   * rather than a fixed decorative size.
+   */
+  grow(ctx: DrawContext, at: Anchor, hostRadius: number, index: number): SvgNode[];
 };
 
 export type PatternModule = ModuleMeta & {
   category: "pattern";
-  /** Drawn inside or across the body's bounds. */
-  draw(ctx: DrawContext, bounds: BodyResult["bounds"]): SvgNode[];
+  /** White structural lines read off the spine. */
+  draw(ctx: DrawContext, plan: BodyPlan): SvgNode[];
 };
 
 export type ArrangementModule = ModuleMeta & {
   category: "arrangement";
-  /** Decides where the `count` appendage placements go. Must be pure. */
-  place(ctx: DrawContext, body: BodyResult, count: number): Anchor[];
+  /** Chooses where along the body growths attach. Must be pure. */
+  place(ctx: DrawContext, plan: BodyPlan, count: number): Anchor[];
 };
 
 export type TransformationModule = ModuleMeta & {
   category: "transformation";
   /**
-   * Deliberate imperfection, applied to the placement list after arrangement.
-   * This is where near-symmetry, a missing part, and uneven scale come from —
-   * they are structural decisions, not noise added at render time.
+   * Deforms the BODY. This is where asymmetry is designed in rather than added
+   * afterwards: a transformation bends a spine, shifts its mass toward one end,
+   * folds it back on itself. The old version nudged a list of placements, which
+   * is the difference between an animal that grew crooked and a symmetrical
+   * diagram with one dot moved.
    */
-  apply(ctx: DrawContext, anchors: Anchor[]): Anchor[];
+  apply(ctx: DrawContext, spines: SpineNode[][]): SpineNode[][];
 };
 
 export type MotionModule = ModuleMeta & {
   category: "motion";
-  /**
-   * Returns SMIL/CSS-free declarative animation as SVG child nodes, plus which
-   * layer it applies to. Motion never travels toward a destination; it changes
-   * a form in place, and often only inside the silhouette.
-   */
   animate(ctx: DrawContext): { target: "outer" | "inner"; nodes: SvgNode[] };
 };
 

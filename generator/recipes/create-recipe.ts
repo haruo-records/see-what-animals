@@ -69,6 +69,13 @@ function instantiate(rng: Rng, m: ModuleMeta): ModuleInstance {
  * Deciding the structural idea first means each candidate is trying to do one
  * specific thing.
  */
+/**
+ * Each constraint is a WAY OF LIVING, and it picks the body and the deformation
+ * that make that life legible. Deciding this first — before any module is
+ * chosen — is what stops a batch being twelve averages of the module set.
+ *
+ * Every name describes a predicament, never a mood and never a species.
+ */
 function constraintPreferences(constraint: CompositionConstraint): {
   transformation?: string;
   arrangement?: string;
@@ -76,24 +83,24 @@ function constraintPreferences(constraint: CompositionConstraint): {
   body?: string;
 } {
   switch (constraint) {
-    case "one-part-absent":
-      return { transformation: "transformation-missing-part-01", motion: "free" };
-    case "near-symmetry-broken-once":
-      return { arrangement: "arrangement-almost-symmetrical-01", transformation: "transformation-offset-01" };
-    case "soft-against-rigid":
-      return { motion: "free" };
-    case "repetition-with-one-exception":
-      return { body: "body-stack-01", motion: "free" };
-    case "outline-still-interior-moves":
-      return { motion: "required" };
-    case "space-as-a-component":
-      return { body: "body-arch-01", motion: "free" };
-    case "almost-touching":
-      return { transformation: "transformation-asymmetric-gap-01", motion: "free" };
-    case "one-disturbance-in-a-cycle":
-      return { arrangement: "arrangement-radial-01", transformation: "transformation-partial-rotation-01" };
-    case "part-unlike-whole":
-      return { transformation: "transformation-uneven-scale-01", motion: "free" };
+    case "heavy-end-thin-neck":
+      return { body: "body-suspended-mass-01", transformation: "transformation-mass-shift-01", motion: "free" };
+    case "supports-its-own-weight":
+      return { body: "body-split-column-01", transformation: "transformation-lean-01", motion: "free" };
+    case "one-joint-already-used":
+      return { body: "body-hinged-mass-01", transformation: "transformation-kink-01", motion: "free" };
+    case "wound-in-on-itself":
+      return { body: "body-coiled-support-01", transformation: "transformation-mass-shift-01", motion: "required" };
+    case "void-larger-than-body":
+      return { body: "body-open-shell-01", transformation: "transformation-stretch-01", motion: "free" };
+    case "one-side-arrived-first":
+      return { body: "body-fork-01", transformation: "transformation-stretch-01", motion: "free" };
+    case "trailing-what-it-cannot-drop":
+      return { body: "body-drifting-plate-01", transformation: "transformation-lean-01", motion: "free" };
+    case "reaching-past-its-balance":
+      return { body: "body-weighted-arc-01", transformation: "transformation-curl-in-01", motion: "free" };
+    case "folded-and-stuck-there":
+      return { body: "body-crooked-frame-01", transformation: "transformation-pinch-01", motion: "free" };
   }
 }
 
@@ -125,7 +132,22 @@ export class GenerationError extends Error {
   }
 }
 
-export function createRecipe(seed: string, candidateId: string, options: { static?: boolean } = {}): WorkRecipe {
+/**
+ * `avoid` lets the batch builder STEER rather than reject.
+ *
+ * With one body per batch and nine bodies, the last slot has a one-in-nine
+ * chance of drawing the only body still allowed — and the constraint that would
+ * have suggested it is usually spent too. Rejecting and re-rolling searches for
+ * that by luck and often runs out of attempts. Telling the engine what is
+ * already taken turns the last slot from a lottery into a choice.
+ */
+export type AvoidHint = { bodies?: string[]; constraints?: string[] };
+
+export function createRecipe(
+  seed: string,
+  candidateId: string,
+  options: { static?: boolean; avoid?: AvoidHint } = {},
+): WorkRecipe {
   const rng = createRng(seed);
 
   const enabledBodies = enabledOf(bodies);
@@ -141,12 +163,25 @@ export function createRecipe(seed: string, candidateId: string, options: { stati
   if (enabledTransformations.length === 0) throw new GenerationError("no-transformations", "No enabled transformation module");
   if (enabledPalettes.length === 0) throw new GenerationError("no-palettes", "No enabled palette module");
 
-  const constraint = rng.fork("constraint").pick(COMPOSITION_CONSTRAINTS);
+  const avoidBodies = options.avoid?.bodies ?? [];
+  const avoidConstraints = options.avoid?.constraints ?? [];
+
+  const constraintPool = COMPOSITION_CONSTRAINTS.filter((c) => !avoidConstraints.includes(c));
+  const constraint = rng
+    .fork("constraint")
+    .pick(constraintPool.length > 0 ? constraintPool : COMPOSITION_CONSTRAINTS);
   const prefs = constraintPreferences(constraint);
   const chosen: string[] = [];
 
   // ── body (exactly one) ────────────────────────────────────────────────────
-  const bodyModule = pickPreferred(rng.fork("body"), enabledBodies, chosen, prefs.body);
+  const bodyPool = enabledBodies.filter((b) => !avoidBodies.includes(b.id));
+  const bodyModule = pickPreferred(
+    rng.fork("body"),
+    bodyPool.length > 0 ? bodyPool : enabledBodies,
+    chosen,
+    // A preference for a body already spent is worse than no preference.
+    avoidBodies.includes(prefs.body ?? "") ? undefined : prefs.body,
+  );
   chosen.push(bodyModule.id);
 
   // ── arrangement (exactly one) ─────────────────────────────────────────────
@@ -188,40 +223,17 @@ export function createRecipe(seed: string, candidateId: string, options: { stati
     chosen.push(picked.id);
   }
 
-  // ── the secondary-element floor ───────────────────────────────────────────
-  // Enforced here rather than by rejecting the candidate later: re-rolling a
-  // whole recipe to fix one absent element wastes the other decisions, which
-  // were fine.
-  let forcedAppendageCount = appendageCount;
-  if (chosenAppendages.length === 0 && chosenPatterns.length === 0) {
-    const pool = enabledAppendages.filter((m) => isCompatibleWithAll(m.id, chosen));
-    if (pool.length > 0) {
-      const picked = appRng.pickWeighted(pool, weightOf);
-      chosenAppendages.push(picked);
-      chosen.push(picked.id);
-      forcedAppendageCount = appRng.int(2, RULES.appendagePlacements.max);
-    } else {
-      const patternPool = enabledPatterns.filter((m) => isCompatibleWithAll(m.id, chosen));
-      if (patternPool.length === 0) {
-        throw new GenerationError(
-          "no-secondary-element",
-          "Nothing compatible remains to place beside this body",
-        );
-      }
-      const picked = patRng.pickWeighted(patternPool, weightOf);
-      chosenPatterns.push(picked);
-      chosen.push(picked.id);
-    }
-  }
-
-  // ── transformations (1–3, the constraint's own first) ─────────────────────
+  // ── transformations (2–3, the constraint's own first) ─────────────────────
   const trRng = rng.fork("transformations");
   const chosenTransformations: ModuleMeta[] = [];
   const first = pickPreferred(trRng, enabledTransformations, chosen, prefs.transformation);
   chosenTransformations.push(first);
   chosen.push(first.id);
 
-  const extraTransformations = trRng.int(0, RULES.transformations.max - 1);
+  const extraTransformations = trRng.int(
+    RULES.transformations.min - 1,
+    RULES.transformations.max - 1,
+  );
   for (let i = 0; i < extraTransformations; i++) {
     const pool = enabledTransformations.filter(
       (m) => !chosenTransformations.some((c) => c.id === m.id) && isCompatibleWithAll(m.id, chosen),
@@ -247,7 +259,7 @@ export function createRecipe(seed: string, candidateId: string, options: { stati
       if (pool.length > 0) {
         // "Outline still, interior moves" must not be satisfied by a whole-form turn.
         const narrowed =
-          constraint === "outline-still-interior-moves"
+          constraint === "wound-in-on-itself"
             ? pool.filter((m) => m.id !== "motion-rotate-01" && m.id !== "motion-sway-01")
             : pool;
         motionModule = moRng.pickWeighted(narrowed.length > 0 ? narrowed : pool, weightOf);
@@ -281,7 +293,7 @@ export function createRecipe(seed: string, candidateId: string, options: { stati
       motion: motionModule ? instantiate(paramRng.fork("motion"), motionModule) : undefined,
       palette: { id: paletteModule.id, version: paletteModule.version, parameters: {} },
     },
-    composition: { appendageCount: forcedAppendageCount, constraint },
+    composition: { appendageCount, constraint },
     generationMeta: {
       generatorVersion: GENERATOR_VERSION,
       ruleSetVersion: RULE_SET_VERSION,

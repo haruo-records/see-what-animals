@@ -1,5 +1,5 @@
 import type { MotionModule } from "../../registry/module-types";
-import { r2 } from "../shared";
+import { r2 } from "../../render/skeleton";
 
 /**
  * A slow turn. Nothing travels — the form stays exactly where it is and only
