@@ -15,6 +15,18 @@ export function parseArgs(argv: string[], known: string[]): Args {
 
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i];
+
+    /**
+     * A bare "--" is a separator, not an option.
+     *
+     * npm strips it when it forwards arguments, but it survives when a script
+     * is run through tsx directly, and PowerShell handles it differently again.
+     * Rejecting it means the documented command fails in some shells and not
+     * others, which is the worst kind of bug to hand someone: the instructions
+     * are correct and the terminal disagrees.
+     */
+    if (token === "--") continue;
+
     if (!token.startsWith("--")) {
       positional.push(token);
       continue;

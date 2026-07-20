@@ -1,5 +1,7 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseArgs, optionalInt, bool, fail, CliError } from "./cli";
+import { createBatch } from "../organic/random/create";
 import { renderForm } from "../organic/iso";
 import type { Form } from "../organic/types";
 import { formA } from "../organic/forms/a";
@@ -11,12 +13,30 @@ import { formF } from "../organic/forms/f";
 
 const OUT = join("generated", "organic");
 
+const KNOWN = ["seed", "count", "force", "help"];
+
+const HELP = `
+generator:organic — the six approved forms, or a batch of new ones
+
+  npm run generator:organic
+      Rebuilds the six fixed, hand-designed forms. Same output every time.
+
+  npm run generator:organic -- --seed 2026-07-20 --count 12
+      Generates a new batch into generated/organic/<seed>/.
+      The same seed always gives the same batch.
+
+  --seed <text>   name the run. Required for generation.
+  --count <n>     how many, 1-24. Default 12.
+  --force         overwrite an existing batch of that name.
+`;
+
 /**
  * All six on one square. Each is rendered into its own cell and inlined, so the
  * sheet is one self-contained file with no text, no rules and no frames — the
  * descriptions live outside the artwork, never on it.
  */
 function sheet(forms: Form[]): string {
+  // The sheet is a fixed 2x3. A longer batch is shown in the gallery instead.
   const size = 1024;
   const cellW = size / 3;
   const cellH = size / 2;
@@ -51,8 +71,8 @@ function page(forms: Form[]): string {
     <div class="stage"><img src="${f.id}.svg" alt=""></div>
     <h2>${f.title}</h2>
     <dl>
+      <div><dt>way of living</dt><dd>${f.notes.suggests}</dd></div>
       <div><dt>structure</dt><dd>${f.notes.structure}</dd></div>
-      <div><dt>suggests</dt><dd>${f.notes.suggests}</dd></div>
       <div><dt>balance</dt><dd>${f.notes.balance}</dd></div>
       <div><dt>masses</dt><dd>${f.nodes.length}</dd></div>
     </dl>
@@ -93,7 +113,50 @@ ${cards}
 `;
 }
 
-function main() {
+/**
+ * A generated batch goes in its own directory named for its seed, so runs
+ * accumulate instead of overwriting each other. Losing yesterday's batch to
+ * today's is the one mistake that cannot be undone by re-running anything.
+ */
+function generate(seed: string, count: number, force: boolean) {
+  const dir = join(OUT, seed);
+  if (existsSync(dir) && !force) {
+    throw new CliError(
+      `generated/organic/${seed} already exists. Nothing was overwritten.\n` +
+        `  Pass --force to replace it, or choose a different --seed.`,
+    );
+  }
+  mkdirSync(dir, { recursive: true });
+
+  const batch = createBatch(seed, count);
+  const forms = batch.candidates.map((c) => c.form);
+
+  for (const f of forms) {
+    writeFileSync(join(dir, `${f.id}.svg`), renderForm(f, { size: 1024 }), "utf8");
+  }
+  writeFileSync(join(dir, "sheet-1024.svg"), sheet(forms.slice(0, 6)), "utf8");
+  writeFileSync(join(dir, "index.html"), page(forms), "utf8");
+
+  process.stdout.write(`\nBatch ${seed} — ${forms.length} individuals, ${forms.length} structures\n\n`);
+  for (const c of batch.candidates) {
+    process.stdout.write(
+      `  ${c.form.id}  ${c.archetype.padEnd(11)} ${c.register.padEnd(6)} ${c.form.scheme.padEnd(8)}\n` +
+        `             ${c.dna.purpose}\n` +
+        `             ${c.dna.support} · ${c.dna.symmetry} · ${c.dna.weighting} · ${c.dna.density}\n`,
+    );
+  }
+  const grown = batch.candidates.filter((c) => c.register === "grown").length;
+  const purposes = new Set(batch.candidates.map((c) => c.dna.purpose)).size;
+  const structures = new Set(batch.candidates.map((c) => c.archetype)).size;
+  process.stdout.write(
+    `  grown ${grown} / built ${batch.candidates.length - grown}` +
+      `   ${structures} distinct structures   ${purposes} distinct purposes` +
+      `   ${batch.rejected} rejected\n`,
+  );
+  process.stdout.write(`\n  ${join(dir, "index.html")}\n\n`);
+}
+
+function fixed() {
   mkdirSync(OUT, { recursive: true });
   const forms: Form[] = [formA, formB, formC, formD, formE, formF];
   for (const f of forms) {
@@ -105,4 +168,30 @@ function main() {
   process.stdout.write(`\n  ${join(OUT, "sheet-1024.svg")}\n  ${join(OUT, "index.html")}\n\n`);
 }
 
-main();
+function main() {
+  const args = parseArgs(process.argv.slice(2), KNOWN);
+  if (bool(args, "help")) {
+    process.stdout.write(HELP);
+    return;
+  }
+
+  const seedFlag = args.flags.seed;
+  if (seedFlag === true) throw new CliError("--seed needs a value, for example --seed 2026-07-20");
+
+  if (typeof seedFlag === "string") {
+    generate(seedFlag, optionalInt(args, "count", 12, 1, 24), bool(args, "force"));
+    return;
+  }
+
+  if (args.flags.count || args.flags.force) {
+    throw new CliError("--count and --force only apply to a generated batch. Pass --seed as well.");
+  }
+
+  fixed();
+}
+
+try {
+  main();
+} catch (err) {
+  fail(err);
+}
