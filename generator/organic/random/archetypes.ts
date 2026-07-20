@@ -1,7 +1,8 @@
 import type { Form, Slab, Link } from "../types";
 import type { Rng } from "../../random/seeded-random";
 import { merge, chain, loop, ringPoints, spiralPoints, branch, type Part } from "../grow";
-import type { Dna } from "./dna";
+import type { Dna, Register } from "./dna";
+export type { Register };
 import { EXTRA_ARCHETYPES } from "./archetypes-extra";
 
 /**
@@ -22,12 +23,13 @@ import { EXTRA_ARCHETYPES } from "./archetypes-extra";
  * result than any individual form in it.
  */
 
-export type Register = "grown" | "built";
-
 export type Archetype = {
   name: string;
-  register: Register;
-  /** The traits this structure fixes. The rest are read off the built form. */
+  /**
+   * The traits this structure fixes. Density and weighting are left out because
+   * they depend on how the parameters actually landed, and are read off the
+   * built form instead of promised in advance.
+   */
   dna: Omit<Dna, "density" | "weighting">;
   build: (rng: Rng, scheme: string) => Omit<Form, "id" | "title">;
 };
@@ -53,8 +55,7 @@ function spur(id: string, from: [number, number, number], dir: [number, number, 
 /** Radial: arms from a swollen centre, one of them arrested. */
 const radial: Archetype = {
   name: "radial",
-  dna: { purpose: "gathers what passes", structure: "radial spray", support: "rests on its whole underside", symmetry: "radial", connection: "grown continuous", material: "soft resin", rhythm: "even with one missing" },
-  register: "grown",
+  dna: { motion: "draws inward", register: "organic", silhouette: "spreading", plurality: "solitary", purpose: "gathers what passes", structure: "radial spray", support: "rests on its whole underside", symmetry: "radial", connection: "grown continuous", material: "soft resin", rhythm: "even with one missing" },
   build: (rng, scheme) => {
     const arms = rng.int(6, 9);
     const reach = rng.float(5.2, 7.4);
@@ -109,8 +110,7 @@ const radial: Archetype = {
 /** Branching: generations dividing and thinning, leaning off the vertical. */
 const branching: Archetype = {
   name: "branching",
-  dna: { purpose: "releases something slowly", structure: "dividing branch", support: "a single stem", symmetry: "none", connection: "grown continuous", material: "polished wood", rhythm: "graded" },
-  register: "grown",
+  dna: { motion: "unfolds", register: "organic", silhouette: "spreading", plurality: "solitary", purpose: "releases something slowly", structure: "dividing branch", support: "a single stem", symmetry: "none", connection: "grown continuous", material: "polished wood", rhythm: "graded" },
   build: (rng, scheme) => {
     const gens = rng.int(3, 4);
     const spread = rng.float(0.7, 0.95);
@@ -154,8 +154,7 @@ const branching: Archetype = {
 /** Colony: several growths of one kind on a shared floor, at different stages. */
 const colony: Archetype = {
   name: "colony",
-  dna: { purpose: "works only as a group", structure: "colony on a floor", support: "many small contacts", symmetry: "serial", connection: "grown continuous", material: "unglazed ceramic", rhythm: "irregular" },
-  register: "grown",
+  dna: { motion: "stays put", register: "organic", silhouette: "scattered", plurality: "colonial", purpose: "works only as a group", structure: "colony on a floor", support: "many small contacts", symmetry: "serial", connection: "grown continuous", material: "unglazed ceramic", rhythm: "irregular" },
   build: (rng, scheme) => {
     const count = rng.int(4, 6);
     const spanX = rng.float(10, 14);
@@ -222,21 +221,24 @@ const colony: Archetype = {
 /** Spiral: one run climbing and thinning, stopping before it closes. */
 const spiral: Archetype = {
   name: "spiral",
-  dna: { purpose: "turns, and pays out", structure: "climbing coil", support: "one broad foot", symmetry: "spiral", connection: "grown continuous", material: "soft resin", rhythm: "none" },
-  register: "grown",
+  dna: { motion: "turns", register: "organic", silhouette: "compact", plurality: "solitary", purpose: "turns, and pays out", structure: "climbing coil", support: "one broad foot", symmetry: "spiral", connection: "grown continuous", material: "soft resin", rhythm: "none" },
   build: (rng, scheme) => {
-    const turns = rng.float(1.2, 1.75);
-    const rise = rng.float(6.4, 8.6);
+    const turns = rng.float(0.9, 2.1);
+    const rise = rng.float(5.0, 9.6);
+    // Step count is part of the form, not a rendering detail: a coil of twelve
+    // masses and a coil of twenty-six are different creatures at the same
+    // proportions. Fixing it was why every spiral came out at 38 masses.
+    const steps = rng.int(12, 26);
     const coil = chain(
       "coil",
-      spiralPoints([0, 0, -rise / 2], rng.float(2.9, 3.6), rng.float(0.9, 1.4), turns, rise, 22, rng.float(0, 90)),
-      (t) => rng.float(1.2, 1.5) - 0.72 * t,
+      spiralPoints([0, 0, -rise / 2], rng.float(2.6, 4.0), rng.float(0.7, 1.6), turns, rise, steps, rng.float(0, 90)),
+      (t) => rng.float(1.1, 1.6) - 0.72 * t,
     );
 
     const top = coil.nodes[coil.nodes.length - 1];
     const ring = loop(
       "ring",
-      ringPoints([top.x + 0.6, top.y - 1.9, top.z], rng.float(1.6, 2.2), 9, "yz", 10, 0.08),
+      ringPoints([top.x + 0.6, top.y - 1.9, top.z], rng.float(1.4, 2.6), rng.int(7, 12), "yz", 10, 0.08),
       () => rng.float(0.45, 0.62),
       "b",
     );
@@ -281,12 +283,11 @@ const spiral: Archetype = {
 /** Gantry: a beam on two uprights, with a carriage run to one end. */
 const gantry: Archetype = {
   name: "gantry",
-  dna: { purpose: "carries along its own length", structure: "beam on uprights", support: "a pair of feet", symmetry: "bilateral", connection: "socketed", material: "worked metal", rhythm: "none" },
-  register: "built",
+  dna: { motion: "shifts its weight", register: "mechanical", silhouette: "spanning", plurality: "solitary", purpose: "carries along its own length", structure: "beam on uprights", support: "a pair of feet", symmetry: "bilateral", connection: "socketed", material: "worked metal", rhythm: "none" },
   build: (rng, scheme) => {
-    const span = rng.float(11, 14.5);
+    const span = rng.float(9.5, 16);
     const beamZ = rng.float(2.2, 3.0);
-    const legDrop = rng.float(6.2, 7.6);
+    const legDrop = rng.float(5.0, 9.0);
     const shortLeg = rng.float(0.7, 1.4);
     const carriageAt = rng.float(0.62, 0.86);
     const cx = -span / 2 + span * carriageAt;
@@ -295,18 +296,54 @@ const gantry: Archetype = {
     const hang = chain("hang", [[cx, -1.4, beamZ], [cx, -1.4, beamZ - 0.7]], () => 0.34, "b");
     const part = merge(ring, hang);
 
-    const legW = rng.float(2.1, 2.6);
+    const legW = rng.float(1.9, 2.8);
     const slabs: Slab[] = [
-      { x: -span / 2, y: -2, z: beamZ, w: span, d: 1.7, h: rng.float(1.3, 1.7), round: 0.42 },
+      { x: -span / 2, y: -2, z: beamZ, w: span, d: 1.7, h: rng.float(1.2, 1.9), round: 0.42 },
       { x: -span / 2 + 0.8, y: -1.8, z: beamZ - 0.4, w: span - 1.6, d: 1.3, h: 0.5, round: 0.2, tone: "b" },
-      { x: -span / 2 + 0.8, y: -1.9, z: beamZ - legDrop, w: legW, d: 1.9, h: 2.2, round: 0.4 },
-      { x: -span / 2 + 1.2, y: -1.7, z: beamZ - legDrop + 2.2, w: 1.7, d: 1.5, h: legDrop - 3.8, round: 0.34 },
-      { x: -span / 2 + 1.0, y: -1.8, z: beamZ - 1.6, w: legW - 0.3, d: 1.7, h: 1.6, round: 0.36, tone: "b" },
-      { x: span / 2 - 3.0, y: -1.9, z: beamZ - legDrop + shortLeg, w: legW, d: 1.9, h: 2.0, round: 0.4 },
-      { x: span / 2 - 2.6, y: -1.7, z: beamZ - legDrop + shortLeg + 2.0, w: 1.7, d: 1.5, h: legDrop - shortLeg - 3.6, round: 0.34 },
-      { x: span / 2 - 2.8, y: -1.8, z: beamZ - 1.4, w: legW - 0.3, d: 1.7, h: 1.4, round: 0.36, tone: "b" },
-      { x: -span / 2 - 1.8, y: -1.6, z: beamZ - rng.float(2.6, 3.8), w: 3.2, d: 1.1, h: 0.9, round: 0.3, tone: "b" },
     ];
+
+    /**
+     * A leg built from a variable number of members, banded in the pale colour
+     * at every second one. Three fixed members meant every gantry had exactly
+     * twenty masses whatever the seed.
+     */
+    const leg = (baseX: number, foot: number) => {
+      const members = rng.int(2, 5);
+      const usable = legDrop - foot;
+      for (let k = 0; k < members; k++) {
+        const t = k / members;
+        const h = (usable / members) * 1.12;
+        const inset = k * 0.22;
+        slabs.push({
+          x: baseX + inset,
+          y: -1.9 + inset * 0.4,
+          z: beamZ - legDrop + foot + usable * t,
+          w: legW - inset * 1.4,
+          d: 1.9 - inset * 0.7,
+          h,
+          round: 0.36,
+          tone: k % 2 === 1 ? "b" : "a",
+        });
+      }
+      slabs.push({
+        x: baseX - 0.3,
+        y: -2.1,
+        z: beamZ - legDrop + foot - 0.5,
+        w: legW + 0.6,
+        d: 2.3,
+        h: 1.1,
+        round: 0.34,
+        tone: "b",
+      });
+    };
+
+    leg(-span / 2 + 0.8, 0);
+    leg(span / 2 - 3.0, shortLeg);
+
+    // The outrigger is not always fitted.
+    if (rng.bool(0.6)) {
+      slabs.push({ x: -span / 2 - 1.8, y: -1.6, z: beamZ - rng.float(2.6, 3.8), w: 3.2, d: 1.1, h: 0.9, round: 0.3, tone: "b" });
+    }
 
     return {
       scheme,
@@ -326,17 +363,17 @@ const gantry: Archetype = {
 /** Bracket: a plate carrying two cheeks and a spool, with a run through it. */
 const bracket: Archetype = {
   name: "bracket",
-  dna: { purpose: "holds something fast", structure: "bracket and run", support: "one broad foot", symmetry: "bilateral", connection: "threaded through", material: "cast stone", rhythm: "none" },
-  register: "built",
+  dna: { motion: "turns", register: "hybrid", silhouette: "compact", plurality: "solitary", purpose: "holds something fast", structure: "bracket and run", support: "one broad foot", symmetry: "bilateral", connection: "threaded through", material: "cast stone", rhythm: "none" },
   build: (rng, scheme) => {
-    const runSpan = rng.float(14, 17);
+    const runSpan = rng.float(11, 19);
     const cheekGap = rng.float(2.8, 3.8);
     const pipeZ = rng.float(1.2, 1.9);
+    const pipePoints = rng.int(4, 9);
 
     const pipe = chain(
       "pipe",
-      Array.from({ length: 5 }, (_, i) => {
-        const t = i / 4;
+      Array.from({ length: pipePoints }, (_, i) => {
+        const t = i / (pipePoints - 1);
         return [-runSpan / 2 + runSpan * t, 3.4 - 6.8 * t, pipeZ - 1.2 * Math.abs(t - 0.5)] as [number, number, number];
       }),
       (t) => rng.float(0.64, 0.8) + 0.16 * Math.sin(t * Math.PI),
@@ -347,10 +384,10 @@ const bracket: Archetype = {
     // The ring hangs on the far end of the pipe and is joined to it. A ring
     // that merely crosses the pipe in the drawing is a second object that
     // happens to overlap, and could not be made as one piece.
-    const ringAt = pipe.nodes[4];
+    const ringAt = pipe.nodes[pipePoints - 1];
     const ring = loop(
       "ring",
-      ringPoints([ringAt.x - 1.4, ringAt.y + 0.7, ringAt.z - 0.9], rng.float(1.1, 1.5), 9, "yz", 0),
+      ringPoints([ringAt.x - 1.4, ringAt.y + 0.7, ringAt.z - 0.9], rng.float(0.9, 1.8), rng.int(7, 12), "yz", 0),
       () => 0.36,
       "b",
     );
@@ -375,7 +412,7 @@ const bracket: Archetype = {
       links: [
         ...part.links,
         { a: "pipe-3", b: "collar-0", tone: "b" },
-        { a: "pipe-4", b: "ring-0", tone: "b" },
+        { a: `pipe-${pipePoints - 1}`, b: "ring-0", tone: "b" },
       ],
       slabs,
       notes: {
@@ -391,13 +428,12 @@ const bracket: Archetype = {
 /** Arch: built in segments, with runs hanging from it at even spacing. */
 const arch: Archetype = {
   name: "arch",
-  dna: { purpose: "spans a gap", structure: "segmented arch", support: "a pair of feet", symmetry: "bilateral", connection: "piled", material: "cast stone", rhythm: "even with one missing" },
-  register: "built",
+  dna: { motion: "stays put", register: "hybrid", silhouette: "spanning", plurality: "solitary", purpose: "spans a gap", structure: "segmented arch", support: "a pair of feet", symmetry: "bilateral", connection: "piled", material: "cast stone", rhythm: "even with one missing" },
   build: (rng, scheme) => {
-    const span = rng.float(14, 17.5);
-    const rise = rng.float(4.0, 5.4);
-    const segs = 7;
-    const dropCount = rng.int(3, 4);
+    const span = rng.float(10.5, 20);
+    const rise = rng.float(2.8, 7.8);
+    const segs = rng.int(5, 9);
+    const dropCount = rng.int(2, 5);
     const shortAt = rng.int(0, dropCount - 1);
 
     /**
@@ -491,8 +527,7 @@ const arch: Archetype = {
 /** Stacked frame: members piled and stepped, with one cantilever out. */
 const stack: Archetype = {
   name: "stack",
-  dna: { purpose: "accumulates, slowly", structure: "stepped stack", support: "rests on its whole underside", symmetry: "layered", connection: "piled", material: "unglazed ceramic", rhythm: "graded" },
-  register: "built",
+  dna: { motion: "stays put", register: "mechanical", silhouette: "stacked", plurality: "solitary", purpose: "accumulates, slowly", structure: "stepped stack", support: "rests on its whole underside", symmetry: "layered", connection: "piled", material: "unglazed ceramic", rhythm: "graded" },
   build: (rng, scheme) => {
     const tiers = rng.int(4, 6);
     const slip = rng.int(1, tiers - 2);
@@ -554,7 +589,17 @@ const stack: Archetype = {
  * structure of its own, which is the only way "twelve different species" can
  * be true — with eight, four of them were always going to be repeats.
  */
+import { NEW_ARCHETYPES } from "./archetypes-new";
+
+/**
+ * Twenty-one structures across three registers.
+ *
+ * A batch takes six, so no structure need ever appear twice in one, and the
+ * recent-batches rule can hold several back and still leave enough to choose
+ * from.
+ */
 export const ARCHETYPES: Archetype[] = [
   radial, branching, colony, spiral, gantry, bracket, arch, stack,
   ...EXTRA_ARCHETYPES,
+  ...NEW_ARCHETYPES,
 ];

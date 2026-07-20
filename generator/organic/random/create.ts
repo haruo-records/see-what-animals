@@ -1,9 +1,18 @@
 import type { Form } from "../types";
 import type { Rng } from "../../random/seeded-random";
 import { createRng } from "../../random/seeded-random";
-import { ARCHETYPES, type Archetype, type Register } from "./archetypes";
+import { ARCHETYPES, type Archetype } from "./archetypes";
 import { SCHEMES } from "../palette";
-import { distance, shared, MIN_DISTANCE, type Dna } from "./dna";
+import {
+  distance,
+  shared,
+  agreementCount,
+  MIN_DISTANCE,
+  MIN_DIFFERING_TRAITS,
+  FUNCTION_FAMILY,
+  type Dna,
+  type Register,
+} from "./dna";
 
 /**
  * CONSTRAINTS AND BATCH DIVERSITY.
@@ -239,6 +248,31 @@ export type Candidate = {
 };
 
 /**
+ * Does every structure differ from every other in at least the required number
+ * of traits?
+ *
+ * Run as a test rather than asserted in a comment, because "this one is
+ * genuinely new" is exactly the kind of claim that is easy to believe about
+ * something you have just designed and hard to check by looking.
+ */
+export function auditDistinctness(): Array<{ a: string; b: string; differing: number; shared: string[] }> {
+  const traitCount = 13;
+  const problems: Array<{ a: string; b: string; differing: number; shared: string[] }> = [];
+  for (let i = 0; i < ARCHETYPES.length; i++) {
+    for (let j = i + 1; j < ARCHETYPES.length; j++) {
+      const a = { ...ARCHETYPES[i].dna, density: "moderate", weighting: "low and centred" } as Dna;
+      const b = { ...ARCHETYPES[j].dna, density: "moderate", weighting: "low and centred" } as Dna;
+      const agree = agreementCount(a, b);
+      const differing = traitCount - agree;
+      if (differing < MIN_DIFFERING_TRAITS) {
+        problems.push({ a: ARCHETYPES[i].name, b: ARCHETYPES[j].name, differing, shared: shared(a, b) });
+      }
+    }
+  }
+  return problems;
+}
+
+/**
  * One form from one archetype, retried until it passes.
  *
  * The retries use forked streams so that a rejection does not shift every later
@@ -275,7 +309,7 @@ export function createOne(
       continue;
     }
 
-    return { form, archetype: archetype.name, register: archetype.register, dna, attempts: attempt };
+    return { form, archetype: archetype.name, register: archetype.dna.register, dna, attempts: attempt };
   }
   throw new Error(
     `${archetype.name} produced nothing usable in ${maxAttempts} attempts (last: ${last?.reason} ${last?.detail}). ` +
@@ -297,34 +331,93 @@ export type Batch = {
  * reused until every colour has been. Both rules look at what has already been
  * chosen, which is the only way a set can be varied at all.
  */
-export function createBatch(seed: string, count: number): Batch {
+/**
+ * Which structures the last few batches used.
+ *
+ * Read from the batch manifests on disk rather than held in memory, because
+ * "different from last time" has to survive the process exiting — otherwise
+ * every session starts again from the same place and the exclusion never does
+ * anything.
+ */
+export function recentlyUsed(manifests: string[][], depth = 3): Set<string> {
+  const used = new Set<string>();
+  for (const list of manifests.slice(0, depth)) for (const name of list) used.add(name);
+  return used;
+}
+
+const REGISTER_QUOTA: Register[] = ["organic", "hybrid", "mechanical"];
+
+/**
+ * A batch of six: two from each register, no structure twice, no more than two
+ * doing the same kind of job, and no two sharing a silhouette family or a way
+ * of standing up.
+ *
+ * The silhouette and support rules matter more than they sound. Two
+ * individuals can pass every other test and still read as siblings from across
+ * a room, because the eye sorts by outline and by stance long before it gets to
+ * anything the DNA is measuring.
+ */
+export function createBatch(seed: string, count: number, avoid: Set<string> = new Set()): Batch {
   const rng = createRng(seed);
   const candidates: Candidate[] = [];
   const dnaSoFar: Dna[] = [];
   let rejected = 0;
 
-  const grown = ARCHETYPES.filter((a) => a.register === "grown");
-  const built = ARCHETYPES.filter((a) => a.register === "built");
   const usedNames = new Set<string>();
+  const usedSilhouette = new Set<string>();
+  const usedSupport = new Set<string>();
+  const familyCount = new Map<string, number>();
 
-  if (count > ARCHETYPES.length) {
-    throw new Error(
-      `${count} asked for but only ${ARCHETYPES.length} structures exist. ` +
-        `Two individuals sharing a structure would be the same creature in different colours, ` +
-        `so the batch cannot be larger than the number of structures.`,
-    );
-  }
+  const quota = Array.from({ length: count }, (_, i) => REGISTER_QUOTA[i % REGISTER_QUOTA.length]);
 
   for (let i = 0; i < count; i++) {
-    // Alternate register, so grown and built stay balanced whatever else falls.
-    const preferred = i % 2 === 0 ? grown : built;
-    let pool = preferred.filter((a) => !usedNames.has(a.name));
-    if (pool.length === 0) pool = ARCHETYPES.filter((a) => !usedNames.has(a.name));
+    const want = quota[i];
 
-    // Each structure is used at most once. This is the rule that makes twelve
-    // individuals twelve species rather than eight species and four reprints.
+    const allowed = (a: Archetype, strict: boolean) => {
+      if (usedNames.has(a.name)) return false;
+      if (usedSilhouette.has(a.dna.silhouette)) return false;
+      if (usedSupport.has(a.dna.support)) return false;
+      const family = FUNCTION_FAMILY[a.dna.purpose];
+      if ((familyCount.get(family) ?? 0) >= 2) return false;
+      if (strict && avoid.has(a.name)) return false;
+      return true;
+    };
+
+    /**
+     * The register is never relaxed.
+     *
+     * An earlier version fell back across registers when the silhouette rule
+     * emptied the pool, and the batches came out three organic to one
+     * mechanical — the one balance the brief states as a number was the first
+     * thing to go. Recency is relaxed first, then silhouette and support, and
+     * the requested register holds throughout.
+     */
+    const inRegister = ARCHETYPES.filter((a) => a.dna.register === want);
+    let pool = inRegister.filter((a) => allowed(a, true));
+    if (pool.length === 0) pool = inRegister.filter((a) => allowed(a, false));
+    if (pool.length === 0) {
+      pool = inRegister.filter(
+        (a) =>
+          !usedNames.has(a.name) &&
+          !avoid.has(a.name) &&
+          (familyCount.get(FUNCTION_FAMILY[a.dna.purpose]) ?? 0) < 2,
+      );
+    }
+    if (pool.length === 0) pool = inRegister.filter((a) => !usedNames.has(a.name));
+    if (pool.length === 0) {
+      throw new Error(
+        `No ${want} structure left for slot ${i + 1} of ${count}. ` +
+          `There are only ${inRegister.length} in that register, so a batch this size ` +
+          `cannot give each slot one of its own. Ask for fewer.`,
+      );
+    }
+
     const archetype = rng.fork(`pick-structure:${i}`).pick(pool);
     usedNames.add(archetype.name);
+    usedSilhouette.add(archetype.dna.silhouette);
+    usedSupport.add(archetype.dna.support);
+    const family = FUNCTION_FAMILY[archetype.dna.purpose];
+    familyCount.set(family, (familyCount.get(family) ?? 0) + 1);
 
     const candidate = createOne(
       rng.fork(`form:${i}`),
@@ -340,11 +433,12 @@ export function createBatch(seed: string, count: number): Batch {
   }
 
   /**
-   * COLOUR, LAST.
+   * COLOUR, LAST, AND NOT COUNTED.
    *
-   * Assigned to finished individuals, in a shuffled order, so no two
-   * neighbours in the sheet share one and the palette is spread across the
-   * batch. Nothing about an individual depended on it.
+   * Assigned to finished individuals, and deliberately absent from every
+   * diversity rule above. If colour counted, two identical creatures could pass
+   * as different by being painted differently, which is the one outcome all of
+   * this exists to prevent.
    */
   const schemeNames = rng.fork("colour").shuffle(SCHEME_NAMES);
   candidates.forEach((c, i) => {

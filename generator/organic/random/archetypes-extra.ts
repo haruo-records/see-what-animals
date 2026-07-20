@@ -22,11 +22,10 @@ import { merge, chain, loop, ringPoints, type Part } from "../grow";
 /** Lives on the surface of something else: a crust with growths rising off it. */
 const encrusting: Archetype = {
   name: "encrusting",
-  dna: { purpose: "lives on the surface of something else", structure: "crust on a member", support: "rests on its whole underside", symmetry: "serial", connection: "grown continuous", material: "unglazed ceramic", rhythm: "irregular" },
-  register: "grown",
+  dna: { motion: "stays put", register: "hybrid", silhouette: "linear", plurality: "colonial", purpose: "lives on the surface of something else", structure: "crust on a member", support: "rests on its whole underside", symmetry: "serial", connection: "grown continuous", material: "unglazed ceramic", rhythm: "irregular" },
   build: (rng, scheme) => {
-    const spanX = rng.float(11, 15);
-    const lumps = rng.int(7, 11);
+    const spanX = rng.float(9, 17);
+    const lumps = rng.int(5, 14);
 
     // The host: a plain slab, so the crust plainly belongs to something.
     const host: Slab[] = [
@@ -79,11 +78,10 @@ const encrusting: Archetype = {
 /** Drifts and filters: everything hangs, nothing stands. */
 const hanging: Archetype = {
   name: "hanging",
-  dna: { purpose: "drifts, and filters as it goes", structure: "bar with hanging strands", support: "hangs from above", symmetry: "serial", connection: "hung", material: "soft resin", rhythm: "even" },
-  register: "grown",
+  dna: { motion: "hangs and sways", register: "organic", silhouette: "hanging", plurality: "solitary", purpose: "drifts, and filters as it goes", structure: "bar with hanging strands", support: "hangs from above", symmetry: "serial", connection: "hung", material: "soft resin", rhythm: "even" },
   build: (rng, scheme) => {
-    const strands = rng.int(5, 8);
-    const spanX = rng.float(8, 11);
+    const strands = rng.int(4, 10);
+    const spanX = rng.float(6.5, 13);
 
     const bar = chain(
       "bar",
@@ -131,11 +129,10 @@ const hanging: Archetype = {
 /** Protects what is inside it: an open cage around a small mass. */
 const cage: Archetype = {
   name: "cage",
-  dna: { purpose: "protects what is inside it", structure: "ribbed cage", support: "a single stem", symmetry: "radial", connection: "grown continuous", material: "polished wood", rhythm: "even with one missing" },
-  register: "grown",
+  dna: { motion: "stays put", register: "organic", silhouette: "enclosing", plurality: "solitary", purpose: "protects what is inside it", structure: "ribbed cage", support: "a single stem", symmetry: "radial", connection: "grown continuous", material: "polished wood", rhythm: "even with one missing" },
   build: (rng, scheme) => {
-    const ribs = rng.int(4, 6);
-    const radius = rng.float(3.0, 4.2);
+    const ribs = rng.int(4, 8);
+    const radius = rng.float(2.6, 4.8);
     const gap = rng.int(0, ribs - 1);
 
     const kernel = chain(
@@ -191,11 +188,10 @@ const cage: Archetype = {
 /** Carries along its own length: a segmented body that travels. */
 const segmented: Archetype = {
   name: "segmented",
-  dna: { purpose: "stores what it takes in", structure: "segmented spine", support: "many small contacts", symmetry: "serial", connection: "grown continuous", material: "soft resin", rhythm: "graded" },
-  register: "grown",
+  dna: { motion: "trails behind itself", register: "organic", silhouette: "linear", plurality: "solitary", purpose: "stores what it takes in", structure: "segmented spine", support: "many small contacts", symmetry: "serial", connection: "grown continuous", material: "soft resin", rhythm: "graded" },
   build: (rng, scheme) => {
-    const segs = rng.int(5, 8);
-    const spanX = rng.float(11, 15);
+    const segs = rng.int(4, 10);
+    const spanX = rng.float(9, 17);
     const swollen = rng.int(1, segs - 2);
 
     const spine = chain(
@@ -241,17 +237,17 @@ const segmented: Archetype = {
 /** Raises something clear: three legs meeting under a small platform. */
 const tripod: Archetype = {
   name: "tripod",
-  dna: { purpose: "raises something clear", structure: "three-legged stand", support: "many small contacts", symmetry: "radial", connection: "socketed", material: "worked metal", rhythm: "even" },
-  register: "built",
+  dna: { motion: "stays put", register: "mechanical", silhouette: "compact", plurality: "solitary", purpose: "raises something clear", structure: "three-legged stand", support: "many small contacts", symmetry: "radial", connection: "socketed", material: "worked metal", rhythm: "even" },
   build: (rng, scheme) => {
-    const spread = rng.float(3.4, 4.8);
-    const height = rng.float(6.0, 8.0);
+    const legs_n = rng.int(3, 5);
+    const steps = rng.int(2, 4);
+    const spread = rng.float(2.8, 5.4);
+    const height = rng.float(5.0, 9.5);
     const legs: Slab[] = [];
 
-    const feet = ringPoints([0, 0, 0], spread, 3, "xy", rng.float(0, 60));
-    for (let i = 0; i < 3; i++) {
+    const feet = ringPoints([0, 0, 0], spread, legs_n, "xy", rng.float(0, 60));
+    for (let i = 0; i < legs_n; i++) {
       const [fx, fy] = feet[i];
-      const steps = 3;
       for (let k = 0; k < steps; k++) {
         const t = k / steps;
         const t2 = (k + 1.15) / steps;
@@ -288,9 +284,9 @@ const tripod: Archetype = {
       links: held.links,
       slabs: legs,
       notes: {
-        structure: "Three legs of stepped members meeting under a small platform.",
+        structure: `${legs_n} legs of stepped members meeting under a small platform.`,
         suggests: "Raising something clear of whatever is below. What it raises is small and not obviously worth it.",
-        balance: "Centred, over three feet at equal spacing. The only symmetrical thing in the set.",
+        balance: `Centred, over ${legs_n} feet at equal spacing.`,
         register: "Built. Every member is a member.",
       },
     };
@@ -300,11 +296,10 @@ const tripod: Archetype = {
 /** Connects two things: a junction where several runs meet a box. */
 const junction: Archetype = {
   name: "junction",
-  dna: { purpose: "connects two things", structure: "junction with runs", support: "no clear support at all", symmetry: "none", connection: "socketed", material: "worked metal", rhythm: "irregular" },
-  register: "built",
+  dna: { motion: "releases outward", register: "hybrid", silhouette: "scattered", plurality: "solitary", purpose: "connects two things", structure: "junction with runs", support: "no clear support at all", symmetry: "none", connection: "socketed", material: "worked metal", rhythm: "irregular" },
   build: (rng, scheme) => {
-    const arms = rng.int(3, 5);
-    const boxW = rng.float(3.0, 4.0);
+    const arms = rng.int(3, 6);
+    const boxW = rng.float(2.4, 4.6);
 
     const body: Slab[] = [
       { x: -boxW / 2, y: -boxW / 2, z: -boxW / 2, w: boxW, d: boxW, h: boxW, round: 0.5 },
@@ -355,15 +350,19 @@ const junction: Archetype = {
 /** Resonates: a long tuned member on a heavy seat, with a lodged mass. */
 const resonator: Archetype = {
   name: "resonator",
-  dna: { purpose: "resonates", structure: "tuned bars on a seat", support: "cantilevered from one side", symmetry: "serial", connection: "clamped", material: "worked metal", rhythm: "graded" },
-  register: "built",
+  dna: { motion: "swings", register: "mechanical", silhouette: "linear", plurality: "solitary", purpose: "resonates", structure: "tuned bars on a seat", support: "cantilevered from one side", symmetry: "serial", connection: "clamped", material: "worked metal", rhythm: "graded" },
   build: (rng, scheme) => {
-    const len = rng.float(13, 17);
-    const bars = rng.int(3, 5);
+    const len = rng.float(10, 19);
+    const bars = rng.int(3, 8);
     const slabs: Slab[] = [];
 
     // A seat at one end, heavy, and a run of bars of graded length along it.
-    slabs.push({ x: -len / 2 - 0.6, y: -1.0, z: -2.4, w: 3.4, d: 4.0, h: rng.float(2.6, 3.6), round: 0.4, tone: "b" });
+    // The seat is one member or two, which changes how the whole thing sits.
+    const seatH = rng.float(2.2, 4.2);
+    slabs.push({ x: -len / 2 - 0.6, y: -1.0, z: -2.4, w: rng.float(2.8, 4.2), d: 4.0, h: seatH, round: 0.4, tone: "b" });
+    if (rng.bool(0.5)) {
+      slabs.push({ x: -len / 2 - 0.2, y: -0.6, z: -2.4 + seatH - 0.3, w: 2.6, d: 3.2, h: 1.0, round: 0.3 });
+    }
     slabs.push({ x: -len / 2 + 1.6, y: -0.6, z: -0.6, w: len - 2.0, d: 2.6, h: rng.float(1.0, 1.5), round: 0.34 });
 
     for (let i = 0; i < bars; i++) {

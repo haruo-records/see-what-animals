@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs, optionalInt, bool, fail, CliError } from "./cli";
-import { createBatch } from "../organic/random/create";
+import { createBatch, recentlyUsed } from "../organic/random/create";
 import { renderForm } from "../organic/iso";
 import type { Form } from "../organic/types";
 import { formA } from "../organic/forms/a";
@@ -26,7 +26,7 @@ generator:organic — the six approved forms, or a batch of new ones
       The same seed always gives the same batch.
 
   --seed <text>   name the run. Required for generation.
-  --count <n>     how many, 1-24. Default 12.
+  --count <n>     how many, 1-8. Default 6.
   --force         overwrite an existing batch of that name.
 `;
 
@@ -118,6 +118,33 @@ ${cards}
  * accumulate instead of overwriting each other. Losing yesterday's batch to
  * today's is the one mistake that cannot be undone by re-running anything.
  */
+/**
+ * The structures used by the most recent batches on disk, newest first.
+ *
+ * A manifest per batch, rather than one running log, so deleting a batch
+ * directory also forgets it — which is what anyone would expect deleting it to
+ * do. It also has to live on disk rather than in memory, or "different from
+ * last time" would reset every time the process exits and the rule would never
+ * once take effect.
+ */
+function previousManifests(): string[][] {
+  if (!existsSync(OUT)) return [];
+  const dirs = readdirSync(OUT)
+    .map((name) => join(OUT, name))
+    .filter((path) => statSync(path).isDirectory() && existsSync(join(path, "batch.json")))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
+
+  return dirs.map((dir) => {
+    try {
+      const parsed: unknown = JSON.parse(readFileSync(join(dir, "batch.json"), "utf8"));
+      const structures = (parsed as { structures?: unknown }).structures;
+      return Array.isArray(structures) ? structures.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
 function generate(seed: string, count: number, force: boolean) {
   const dir = join(OUT, seed);
   if (existsSync(dir) && !force) {
@@ -128,7 +155,10 @@ function generate(seed: string, count: number, force: boolean) {
   }
   mkdirSync(dir, { recursive: true });
 
-  const batch = createBatch(seed, count);
+  // Hold back whatever the last three batches used, so a run differs from
+  // recent history and is not merely varied within itself.
+  const avoid = recentlyUsed(previousManifests(), 3);
+  const batch = createBatch(seed, count, avoid);
   const forms = batch.candidates.map((c) => c.form);
 
   for (const f of forms) {
@@ -136,20 +166,38 @@ function generate(seed: string, count: number, force: boolean) {
   }
   writeFileSync(join(dir, "sheet-1024.svg"), sheet(forms.slice(0, 6)), "utf8");
   writeFileSync(join(dir, "index.html"), page(forms), "utf8");
+  writeFileSync(
+    join(dir, "batch.json"),
+    JSON.stringify(
+      {
+        seed,
+        structures: batch.candidates.map((c) => c.archetype),
+        registers: batch.candidates.map((c) => c.register),
+        purposes: batch.candidates.map((c) => c.dna.purpose),
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
 
-  process.stdout.write(`\nBatch ${seed} — ${forms.length} individuals, ${forms.length} structures\n\n`);
+  process.stdout.write(`\nBatch ${seed} — ${forms.length} individuals, ${forms.length} structures\n`);
+  if (avoid.size > 0) {
+    process.stdout.write(`  holding back ${avoid.size} structure(s) used in the last three batches\n`);
+  }
+  process.stdout.write("\n");
   for (const c of batch.candidates) {
     process.stdout.write(
-      `  ${c.form.id}  ${c.archetype.padEnd(11)} ${c.register.padEnd(6)} ${c.form.scheme.padEnd(8)}\n` +
-        `             ${c.dna.purpose}\n` +
-        `             ${c.dna.support} · ${c.dna.symmetry} · ${c.dna.weighting} · ${c.dna.density}\n`,
+      `  ${c.form.id}  ${c.archetype.padEnd(11)} ${c.register.padEnd(11)} ${c.form.scheme}\n` +
+        `             ${c.dna.purpose} — ${c.dna.motion}\n` +
+        `             ${c.dna.silhouette} · ${c.dna.plurality} · ${c.dna.support} · ${c.dna.weighting} · ${c.dna.density}\n`,
     );
   }
-  const grown = batch.candidates.filter((c) => c.register === "grown").length;
+  const byRegister = (r: string) => batch.candidates.filter((c) => c.register === r).length;
   const purposes = new Set(batch.candidates.map((c) => c.dna.purpose)).size;
   const structures = new Set(batch.candidates.map((c) => c.archetype)).size;
   process.stdout.write(
-    `  grown ${grown} / built ${batch.candidates.length - grown}` +
+    `  organic ${byRegister("organic")} / hybrid ${byRegister("hybrid")} / mechanical ${byRegister("mechanical")}` +
       `   ${structures} distinct structures   ${purposes} distinct purposes` +
       `   ${batch.rejected} rejected\n`,
   );
@@ -179,7 +227,7 @@ function main() {
   if (seedFlag === true) throw new CliError("--seed needs a value, for example --seed 2026-07-20");
 
   if (typeof seedFlag === "string") {
-    generate(seedFlag, optionalInt(args, "count", 12, 1, 24), bool(args, "force"));
+    generate(seedFlag, optionalInt(args, "count", 6, 1, 8), bool(args, "force"));
     return;
   }
 
