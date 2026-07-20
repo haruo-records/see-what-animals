@@ -20,7 +20,7 @@
  * turned surface rather than as a lit polyhedron, which is what these need.
  */
 
-import type { Form, Node } from "./types";
+import type { Form, Node, Slab } from "./types";
 import { SCHEMES, shade } from "./palette";
 
 const COS30 = Math.cos(Math.PI / 6);
@@ -68,7 +68,82 @@ function hullPath(p1: Vec2, r1: number, p2: Vec2, r2v: number): string {
   ].join(" ");
 }
 
+/**
+ * A closed path through a polygon with every corner rounded by the same amount.
+ * Taking the edges off is what stops a built member reading as a block: the
+ * corner is where a moulding shows and where a snapped-together toy shows.
+ */
+function roundedPolygon(points: Vec2[], radius: number): string {
+  const n = points.length;
+  const out: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const prev = points[(i - 1 + n) % n];
+    const here = points[i];
+    const next = points[(i + 1) % n];
+    const toPrev: Vec2 = [prev[0] - here[0], prev[1] - here[1]];
+    const toNext: Vec2 = [next[0] - here[0], next[1] - here[1]];
+    const lp = Math.hypot(...toPrev) || 1;
+    const ln = Math.hypot(...toNext) || 1;
+    const r = Math.min(radius, lp * 0.45, ln * 0.45);
+    const a: Vec2 = [here[0] + (toPrev[0] / lp) * r, here[1] + (toPrev[1] / lp) * r];
+    const b: Vec2 = [here[0] + (toNext[0] / ln) * r, here[1] + (toNext[1] / ln) * r];
+    out.push(`${out.length === 0 ? "M" : "L"} ${r2(a[0])} ${r2(a[1])}`);
+    out.push(`Q ${r2(here[0])} ${r2(here[1])} ${r2(b[0])} ${r2(b[1])}`);
+  }
+  return out.join(" ") + " Z";
+}
+
+/** The convex hull of a set of points, for a solid's outer silhouette. */
+function hull(points: Vec2[]): Vec2[] {
+  const pts = [...points].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+  const cross = (o: Vec2, a: Vec2, b: Vec2) =>
+    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const build = (src: Vec2[]) => {
+    const out: Vec2[] = [];
+    for (const p of src) {
+      while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0) out.pop();
+      out.push(p);
+    }
+    return out;
+  };
+  const lower = build(pts);
+  const upper = build([...pts].reverse());
+  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+}
+
 type Blob = { path: string; depth: number; tone: "a" | "b"; centre: Vec2; radius: number };
+
+/**
+ * A slab, as three tone-separated faces inside one rounded silhouette.
+ *
+ * The silhouette is drawn first and the faces laid inside it, so the member has
+ * one continuous outer edge rather than three panels meeting at a seam. Face
+ * separation is by tone alone — no lines, no gradients across an edge — which
+ * is the flat, illustrated read the brief asks for rather than a rendering.
+ */
+function slabMarkup(sl: Slab, unit: number, base: string): { markup: string; depth: number } {
+  const { x, y, z, w, d, h } = sl;
+  const P = (a: number, b: number, c: number) => project(a, b, c, unit);
+  const corners: Vec2[] = [];
+  for (const [dx, dy, dz] of [
+    [0, 0, 0], [w, 0, 0], [0, d, 0], [w, d, 0],
+    [0, 0, h], [w, 0, h], [0, d, h], [w, d, h],
+  ]) corners.push(P(x + dx, y + dy, z + dz));
+
+  const soft = (sl.round ?? 0.16) * unit;
+  const top: Vec2[] = [P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)];
+  const right: Vec2[] = [P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)];
+  const left: Vec2[] = [P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)];
+
+  const markup = [
+    `    <path d="${roundedPolygon(hull(corners), soft)}" fill="${shade(base, -0.06)}"/>`,
+    `    <path d="${roundedPolygon(left, soft * 0.8)}" fill="${shade(base, 0.02)}"/>`,
+    `    <path d="${roundedPolygon(right, soft * 0.8)}" fill="${shade(base, -0.16)}"/>`,
+    `    <path d="${roundedPolygon(top, soft * 0.8)}" fill="${shade(base, 0.2)}"/>`,
+  ].join("\n");
+
+  return { markup, depth: x + w / 2 + (y + d / 2) + (z + h / 2) };
+}
 
 export type RenderOptions = { size?: number; margin?: number };
 
@@ -85,6 +160,12 @@ export function renderForm(form: Form, options: RenderOptions = {}): string {
   for (const n of form.nodes) {
     const [px, py] = project(n.x, n.y, n.z, 1);
     probe.push([px - n.r, py - n.r], [px + n.r, py + n.r]);
+  }
+  for (const sl of form.slabs ?? []) {
+    for (const [dx, dy, dz] of [
+      [0, 0, 0], [sl.w, 0, 0], [0, sl.d, 0], [sl.w, sl.d, 0],
+      [0, 0, sl.h], [sl.w, 0, sl.h], [0, sl.d, sl.h], [sl.w, sl.d, sl.h],
+    ]) probe.push(project(sl.x + dx, sl.y + dy, sl.z + dz, 1));
   }
   const xs = probe.map((v) => v[0]);
   const ys = probe.map((v) => v[1]);
@@ -134,20 +215,34 @@ export function renderForm(form: Form, options: RenderOptions = {}): string {
    * the next one is laid over it. Doing all the silhouettes first and all the
    * highlights afterwards would let a highlight float over a part in front.
    */
-  const body: string[] = [];
+  /**
+   * Two passes, not three, and gentler than before.
+   *
+   * Three stacked highlights was starting to look rendered — the point is to
+   * let a form be read as solid, not to explain its surface. One soft lift is
+   * enough for that, and leaves the drawing flat enough to sit on a mug.
+   */
+  const drawn: Array<{ markup: string; depth: number }> = [];
+
   for (const b of blobs) {
     const base = colourOf(b.tone);
-    const lift = b.radius * 0.2;
-    body.push(`    <path d="${b.path}" fill="${base}"/>`);
-    body.push(
-      `    <g transform="translate(${r2(-lift * 0.72)} ${r2(-lift)}) scale(0.9)" transform-origin="${r2(b.centre[0])} ${r2(b.centre[1])}">` +
-        `<path d="${b.path}" fill="${shade(base, 0.13)}"/></g>`,
-    );
-    body.push(
-      `    <g transform="translate(${r2(-lift * 1.5)} ${r2(-lift * 2.1)}) scale(0.62)" transform-origin="${r2(b.centre[0])} ${r2(b.centre[1])}">` +
-        `<path d="${b.path}" fill="${shade(base, 0.3)}"/></g>`,
-    );
+    const lift = b.radius * 0.17;
+    drawn.push({
+      depth: b.depth,
+      markup: [
+        `    <path d="${b.path}" fill="${base}"/>`,
+        `    <g transform="translate(${r2(-lift * 0.75)} ${r2(-lift)}) scale(0.87)" transform-origin="${r2(b.centre[0])} ${r2(b.centre[1])}">` +
+          `<path d="${b.path}" fill="${shade(base, 0.17)}"/></g>`,
+      ].join("\n"),
+    });
   }
+
+  for (const sl of form.slabs ?? []) {
+    drawn.push(slabMarkup(sl, unit, colourOf(sl.tone ?? "a")));
+  }
+
+  drawn.sort((p, q) => p.depth - q.depth);
+  const body = drawn.map((d) => d.markup);
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img">`,

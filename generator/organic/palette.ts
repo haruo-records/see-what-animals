@@ -14,13 +14,21 @@ export type Scheme = { name: string; a: string; b: string };
 
 export const PALE = "#E6E6E6";
 
+/**
+ * Colours with some depth in them, and cheerful rather than merely bright.
+ *
+ * The test is a mug: one of these forms alone on a white glaze, seen every
+ * morning for years. That rules out anything fluorescent, which tires within a
+ * week, and anything greyed-off, which reads as a stain. What survives is a
+ * saturated colour with a dark base under it.
+ */
 export const SCHEMES: Record<string, Scheme> = {
-  teal: { name: "sea green and light grey", a: "#2E8F84", b: PALE },
-  ochre: { name: "ochre and light grey", a: "#C79F4C", b: PALE },
-  moss: { name: "moss green and light grey", a: "#6E9455", b: PALE },
-  slate: { name: "slate blue and light grey", a: "#4A6BA8", b: PALE },
-  coral: { name: "coral and light grey", a: "#C86A5E", b: PALE },
-  clay: { name: "clay orange and light grey", a: "#CE8149", b: PALE },
+  teal: { name: "deep sea green and light grey", a: "#1F8C81", b: PALE },
+  ochre: { name: "warm amber and light grey", a: "#D69B33", b: PALE },
+  moss: { name: "leaf green and light grey", a: "#5E9448", b: PALE },
+  slate: { name: "deep blue and light grey", a: "#3C63A8", b: PALE },
+  coral: { name: "warm coral and light grey", a: "#D0655A", b: PALE },
+  clay: { name: "burnt orange and light grey", a: "#D2743C", b: PALE },
 };
 
 /** Moves a colour toward white by `amount`, or toward black if negative. */

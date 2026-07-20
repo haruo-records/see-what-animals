@@ -1,66 +1,54 @@
 import type { Form } from "../types";
-import { merge, loop, chain, ringPoints } from "../grow";
+import { merge, chain, loop, ringPoints } from "../grow";
 
 /**
- * A — two rings passing through one another, neither of them closed.
+ * A — BUILT. A gantry: two uprights, a beam across, and a carriage hanging
+ * under it that has run to one end and stayed there.
  *
- * A loop has no top and no front: whichever way it is turned it is the same
- * proposition. The larger ring swells on one side and thins on the other, so
- * it is a growth rather than a hoop.
+ * Wholly architectural in its parts and not at all in its proportions. The
+ * carriage is at the end of its travel, and there is nothing at that end for it
+ * to have arrived at.
  */
 
-const bigRing = loop(
-  "big",
-  ringPoints([0, 0, 0], 5.2, 11, "xz", -20, 0.12),
-  (t) => 1.05 + 0.55 * Math.sin(t * Math.PI * 1.4),
-);
-
-/** A second ring threaded through the first, at an angle to it. */
-const smallRing = loop(
-  "small",
-  ringPoints([3.4, 2.6, -3.6], 2.5, 9, "yz", 40, 0.1),
-  (t) => 0.62 + 0.3 * Math.sin(t * Math.PI),
+const carriageRing = loop("ring", ringPoints([4.6, -1.4, 0.6], 1.5, 9, "yz", 0), () => 0.42, "b");
+const hanger = chain(
+  "hang",
+  [
+    [4.6, -1.4, 2.6],
+    [4.6, -1.4, 1.9],
+  ],
+  () => 0.34,
   "b",
 );
 
-/** A short run that leaves the big ring and stops without arriving anywhere. */
-const spur = chain(
-  "spur",
-  [
-    [-3.4, -0.6, 2.2],
-    [-5.0, -1.6, 3.0],
-    [-6.4, -2.2, 3.2],
-    [-7.4, -2.4, 2.7],
-  ],
-  (t) => 0.95 - 0.5 * t + 0.35 * Math.max(0, t - 0.7),
-);
-
-const knot = chain(
-  "knot",
-  [
-    [3.0, 0.2, 3.4],
-    [3.9, 0.9, 4.1],
-  ],
-  () => 1.25,
-  "b",
-);
-
-const part = merge(bigRing, smallRing, spur, knot);
+const part = merge(carriageRing, hanger);
 
 export const formA: Form = {
   id: "form-a",
   title: "A",
   scheme: "teal",
   nodes: part.nodes,
-  links: [
-    ...part.links,
-    // The spur grows out of the ring rather than being attached to it.
-    { a: "big-6", b: "spur-0" },
-    { a: "big-1", b: "knot-0", tone: "b" },
+  links: [...part.links, { a: "hang-1", b: "ring-2", tone: "b" }],
+  slabs: [
+    // The beam, and a lighter rail under it that the carriage runs on.
+    { x: -6.4, y: -2, z: 2.6, w: 13, d: 1.7, h: 1.5, round: 0.42 },
+    { x: -5.6, y: -1.8, z: 2.2, w: 11.4, d: 1.3, h: 0.5, round: 0.2, tone: "b" },
+    // Near upright: three members, stepping in as they rise.
+    { x: -5.6, y: -1.9, z: -4.4, w: 2.4, d: 1.9, h: 2.2, round: 0.4 },
+    { x: -5.2, y: -1.7, z: -2.2, w: 1.7, d: 1.5, h: 3.2, round: 0.34 },
+    { x: -5.4, y: -1.8, z: 1.0, w: 2.1, d: 1.7, h: 1.6, round: 0.36, tone: "b" },
+    // Far upright: the same three, but the middle member is longer, so the
+    // beam sits level while the feet do not.
+    { x: 3.6, y: -1.9, z: -3.2, w: 2.4, d: 1.9, h: 2.0, round: 0.4 },
+    { x: 4.0, y: -1.7, z: -1.2, w: 1.7, d: 1.5, h: 2.4, round: 0.34 },
+    { x: 3.8, y: -1.8, z: 1.2, w: 2.1, d: 1.7, h: 1.4, round: 0.36, tone: "b" },
+    // A brace from the near upright out to nothing.
+    { x: -7.8, y: -1.6, z: -0.6, w: 2.6, d: 1.1, h: 0.9, round: 0.3, tone: "b" },
   ],
   notes: {
-    structure: "Ring and loop. Two closed runs linked through each other, at an angle.",
-    suggests: "Holding, or being held. Something passes through the larger ring and cannot come out past the smaller one.",
-    balance: "It has none in particular. Turned any way up it presents the same problem, which is the point of a loop.",
+    structure: "Frame. A beam on two uprights, each built from three members, with a rail and a carriage under it.",
+    suggests: "Carrying something along its length. The carriage has run to one end and there is nothing there.",
+    balance: "Across, between two feet that do not reach the same level. The beam is level; the ground it implies is not.",
+    register: "Built. Nothing about it grew.",
   },
 };

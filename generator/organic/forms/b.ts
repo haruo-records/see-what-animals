@@ -54,6 +54,7 @@ export const formB: Form = {
   notes: {
     structure: "Radial. Eight arms from one swollen centre, curling up at their ends.",
     suggests: "Gathering, or straining. Everything it does, it appears to do at the rim.",
+    register: "Grown. Radial, and entirely soft.",
     balance: "Low and even, sitting in its own middle. One arm is half length, so it is not quite even after all.",
   },
 };

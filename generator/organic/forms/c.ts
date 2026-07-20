@@ -43,6 +43,7 @@ export const formC: Form = {
   notes: {
     structure: "Branching. Four generations, each thinner than the last, each tip swelling to a bud.",
     suggests: "Spreading, or reaching. It occupies more space than it weighs.",
+    register: "Grown. A branching structure and nothing else.",
     balance: "Over a single thickened foot, well to one side of the spread it carries.",
   },
 };

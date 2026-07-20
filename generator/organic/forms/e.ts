@@ -66,6 +66,7 @@ export const formE: Form = {
   notes: {
     structure: "Colony. Five growths of one kind on a shared floor, each at a different stage.",
     suggests: "Increasing. Whatever it is doing, it has been doing for a while and is not finished.",
+    register: "Grown. A colony, with no built member anywhere in it.",
     balance: "Spread along the floor. No one stalk carries the thing; remove any of them and it still stands.",
   },
 };
