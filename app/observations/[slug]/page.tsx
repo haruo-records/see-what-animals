@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { observationSessions, getSessionBySlug } from "@/data/observation-sessions";
 import { isPublic, publicSessions } from "@/lib/observation/publish";
 import { getAnimalReference } from "@/data/animal-references";
-import { getQuestion } from "@/data/questions";
-import { resultService } from "@/lib/observation/result-service";
 import { siteSettings } from "@/data/site-settings";
 import { formatDate } from "@/lib/observation/session-status";
 import { PageShell } from "@/components/layout/page-shell";
@@ -19,12 +17,11 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const session = getSessionBySlug(params.slug);
   if (!session || !isPublic(session)) return {};
-  const result = resultService.getResult(session.id);
   return {
     title: `Observation ${session.observationNumber}`,
-    description: `How one form was seen. ${result?.totalResponses ?? 0} observations, ${formatDate(
-      session.startsAt,
-    )} – ${formatDate(session.closesAt)}.`,
+    description: `What did people see this week — ${formatDate(session.startsAt)} to ${formatDate(
+      session.closesAt,
+    )}.`,
   };
 }
 
@@ -35,30 +32,21 @@ export default function ObservationResultPage({ params }: { params: { slug: stri
   if (!session || !isPublic(session)) notFound();
 
   const animal = getAnimalReference(session.animalId);
-  const result = resultService.getResult(session.id);
-  const questions = session.questionIds
-    .map((id) => getQuestion(id))
-    .filter((q): q is NonNullable<typeof q> => Boolean(q));
 
-  if (!animal || !result) notFound();
+  if (!animal) notFound();
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `Observation ${session.observationNumber}`,
     url: `${siteSettings.siteUrl}/observations/${session.slug}`,
-    description: `An observation record. ${result.totalResponses} responses.`,
+    description: "What did people see this week.",
   };
 
   return (
     <section className="py-10 sm:py-14">
       <PageShell width="shell">
-        <ObservationResult
-          session={session}
-          animal={animal}
-          result={result}
-          questions={questions}
-        />
+        <ObservationResult session={session} animal={animal} />
       </PageShell>
       <script
         type="application/ld+json"

@@ -26,12 +26,21 @@ export type NavItem = {
 
 /**
  * PLAY — observation methods. Current Observation is the entrance (`/`); Archive
- * is the record of past observations; Lab is reserved for what comes next.
+ * is the record of past observations.
  */
 export const playNav: NavItem[] = [
   { label: "Current Observation", href: "/", enabled: true, note: "the form open now" },
   { label: "Archive", href: "/observations", enabled: true, note: "how past forms were seen" },
-  { label: "Lab", href: "/lab", enabled: false, comingSoon: true, note: "new ways of observing" },
+];
+
+/**
+ * OTHER WAYS OF SEEING — a group heading (not a link) with sister experiments,
+ * each opening in a new tab. This replaced the old Lab (soon) entry.
+ */
+export const otherWaysNav: NavItem[] = [
+  { label: "MVP", href: "https://see-what-mvp.vercel.app", external: true, enabled: true },
+  { label: "Blue", href: "https://see-what-blue.vercel.app", external: true, enabled: true },
+  { label: "Mirroringo", href: "https://mirroringo.vercel.app", external: true, enabled: true },
 ];
 
 /**

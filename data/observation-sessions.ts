@@ -1,50 +1,59 @@
 import type { ObservationSession } from "@/types";
 
 /**
- * SESSIONS
- * Period lives here (startsAt/closesAt), never in code. A 14- or 30-day run is
- * just different dates. status is derived from the clock (see lib/observation/
- * session-status.ts); set an explicit `status` only to override.
+ * SESSIONS — one per week, switched by hand.
  *
- * ADD A SESSION: append an entry with a new slug + observationNumber, point
- * animalId at an entry in animal-references.ts, and list questionIds.
+ * MANUAL OPERATION (current): publishing, closing, and showing results are all
+ * done by an admin editing this file and redeploying. There is no clock-based
+ * auto-publish, auto-close, or auto-switch to results.
+ *   • Open for answers      → status: "open"
+ *   • Results only          → status: "closed"  (the form is hidden; "What
+ *                             people saw" shows in its place)
+ *   • Publish the next work  → give this session a new observationNumber +
+ *                             animalId (or append a fresh session), status "open"
+ *
+ * startsAt / closesAt are kept only as the dates shown on the record; while a
+ * `status` is set they do NOT drive open/closed. Remove `status` to fall back to
+ * date-derived status.
+ *
+ * FUTURE AUTOMATION (kept, dormant): weeklyCycleJst() below computes the
+ * Sunday-06:00-JST → Saturday-06:00-JST window. Flip USE_LIVE_WEEKLY_CYCLE to
+ * true and drop the explicit `status` to let the clock run the rhythm. Not used
+ * today.
  */
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 /**
- * ── DEMO vs PRODUCTION SCHEDULE ─────────────────────────────────────────────
- * The featured session needs to look "open" while you evaluate the template, so
- * by default it uses a rolling weekly window (weeklyWindow()).
- *
- * ►► BEFORE LAUNCH: set USE_DEMO_WINDOW = false. The featured session will then
- *    use FEATURED_STARTS_AT / FEATURED_CLOSES_AT below — plain ISO strings you
- *    control. That is the only change required to ship real dates.
+ * Dormant weekly helper (see FUTURE AUTOMATION above):
+ *   startsAt = most recent Sunday 06:00 JST · closesAt = following Saturday 06:00 JST.
  */
-const USE_DEMO_WINDOW = true;
-
-// Used only when USE_DEMO_WINDOW = false. Edit these to your real run.
-const FEATURED_STARTS_AT = "2026-07-13T00:00:00.000Z";
-const FEATURED_CLOSES_AT = "2026-07-19T23:59:59.000Z";
-
-/**
- * Demo helper: current Monday→Sunday window (UTC) so the featured session is
- * always mid-run. Not used in production when USE_DEMO_WINDOW = false.
- */
-function weeklyWindow(): { startsAt: string; closesAt: string } {
-  const now = new Date();
-  const day = now.getUTCDay(); // 0 Sun … 6 Sat
-  const sinceMonday = (day + 6) % 7;
-  const monday = new Date(now);
-  monday.setUTCDate(now.getUTCDate() - sinceMonday);
-  monday.setUTCHours(0, 0, 0, 0);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  sunday.setUTCHours(23, 59, 59, 0);
-  return { startsAt: monday.toISOString(), closesAt: sunday.toISOString() };
+function weeklyCycleJst(now: Date = new Date()): { startsAt: string; closesAt: string } {
+  const jst = new Date(now.getTime() + JST_OFFSET_MS);
+  const daysSinceSunday = jst.getUTCDay();
+  let startUtcMs =
+    Date.UTC(jst.getUTCFullYear(), jst.getUTCMonth(), jst.getUTCDate() - daysSinceSunday, 6, 0, 0) -
+    JST_OFFSET_MS;
+  if (now.getTime() < startUtcMs) startUtcMs -= 7 * DAY_MS;
+  const closeUtcMs = startUtcMs + 6 * DAY_MS;
+  return { startsAt: new Date(startUtcMs).toISOString(), closesAt: new Date(closeUtcMs).toISOString() };
 }
 
-const featuredWindow = USE_DEMO_WINDOW
-  ? weeklyWindow()
-  : { startsAt: FEATURED_STARTS_AT, closesAt: FEATURED_CLOSES_AT };
+/** Manual today. Set true (and drop `status` below) to hand the rhythm to the clock. */
+const USE_LIVE_WEEKLY_CYCLE = false;
+
+// The dates shown on the record for the current manual run (Sunday 06:00 JST →
+// Saturday 06:00 JST). Edit these when you publish a new week.
+const FEATURED_STARTS_AT = "2026-07-19T06:00:00.000+09:00";
+const FEATURED_CLOSES_AT = "2026-07-25T06:00:00.000+09:00";
+
+const featuredWindow = USE_LIVE_WEEKLY_CYCLE
+  ? weeklyCycleJst()
+  : {
+      startsAt: new Date(FEATURED_STARTS_AT).toISOString(),
+      closesAt: new Date(FEATURED_CLOSES_AT).toISOString(),
+    };
 
 export const observationSessions: ObservationSession[] = [
   {
@@ -55,17 +64,17 @@ export const observationSessions: ObservationSession[] = [
     intro: "Take a moment before you decide what it is.",
     startsAt: featuredWindow.startsAt,
     closesAt: featuredWindow.closesAt,
-    questionIds: ["q-see", "q-stands", "q-name"],
+    // MANUAL SWITCH: "open" = accepting answers. Change to "closed" to hide the
+    // form and show only "What people saw" for this week.
+    status: "open",
+    questionIds: ["q-see"],
     allowPostCloseResponses: false,
     featured: true,
   },
-  // NOTE: The Archive opens empty on purpose. Past demo observations (020–022)
-  // were removed so nothing dummy is shown; the Archive fills itself again as
-  // real sessions close. To seed or restore a past entry, append it here exactly
-  // like the current observation above (a new slug + observationNumber, an
-  // animalId in animal-references.ts, its questionIds, and a `closesAt` in the
-  // past) and add its distribution to data/mock-results.ts — the listing wiring
-  // is unchanged, so it will appear automatically.
+  // The Archive opens empty on purpose. Append a past week here exactly like the
+  // current one (new slug + observationNumber, an animalId in
+  // animal-references.ts, questionIds: ["q-see"], status: "closed",
+  // and a `closesAt` in the past) to bring an entry back.
 ];
 
 export function getSessionBySlug(slug: string): ObservationSession | undefined {

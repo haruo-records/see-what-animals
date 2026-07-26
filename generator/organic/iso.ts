@@ -121,7 +121,7 @@ type Blob = { path: string; depth: number; tone: "a" | "b"; centre: Vec2; radius
  * separation is by tone alone — no lines, no gradients across an edge — which
  * is the flat, illustrated read the brief asks for rather than a rendering.
  */
-function slabMarkup(sl: Slab, unit: number, base: string): { markup: string; depth: number } {
+function slabMarkup(sl: Slab, unit: number, base: string, stroke: string, strokeThin: string): { markup: string; depth: number } {
   const { x, y, z, w, d, h } = sl;
   const P = (a: number, b: number, c: number) => project(a, b, c, unit);
   const corners: Vec2[] = [];
@@ -135,22 +135,52 @@ function slabMarkup(sl: Slab, unit: number, base: string): { markup: string; dep
   const right: Vec2[] = [P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)];
   const left: Vec2[] = [P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)];
 
+  // The outer silhouette carries the main outline; the three faces are stroked
+  // a little thinner, so the box's top-to-side arris reads as a line rather
+  // than only a tone change, without competing with the silhouette.
   const markup = [
-    `    <path d="${roundedPolygon(hull(corners), soft)}" fill="${shade(base, -0.06)}"/>`,
-    `    <path d="${roundedPolygon(left, soft * 0.8)}" fill="${shade(base, 0.02)}"/>`,
-    `    <path d="${roundedPolygon(right, soft * 0.8)}" fill="${shade(base, -0.16)}"/>`,
-    `    <path d="${roundedPolygon(top, soft * 0.8)}" fill="${shade(base, 0.2)}"/>`,
+    `    <path d="${roundedPolygon(hull(corners), soft)}" fill="${shade(base, -0.06)}"${stroke}/>`,
+    `    <path d="${roundedPolygon(left, soft * 0.8)}" fill="${shade(base, 0.02)}"${strokeThin}/>`,
+    `    <path d="${roundedPolygon(right, soft * 0.8)}" fill="${shade(base, -0.16)}"${strokeThin}/>`,
+    `    <path d="${roundedPolygon(top, soft * 0.8)}" fill="${shade(base, 0.2)}"${strokeThin}/>`,
   ].join("\n");
 
   return { markup, depth: x + w / 2 + (y + d / 2) + (z + h / 2) };
 }
 
-export type RenderOptions = { size?: number; margin?: number };
+export type RenderOptions = {
+  size?: number;
+  margin?: number;
+  /**
+   * A dark outline on every visible edge.
+   *
+   * Each part's silhouette is stroked before it is filled, in draw order. Where
+   * a later part overlaps an earlier one, the later stroke lands exactly on the
+   * boundary between them — so contacts, overlaps and the near edges of a
+   * cavity all pick up a line without any edge detection: the paint order does
+   * it. Hidden edges are never drawn, because the part in front is painted over
+   * them.
+   */
+  outline?: boolean;
+  /** Outline colour; mid-to-dark grey (#333–#555) reads as drawn, not heavy. */
+  outlineColor?: string;
+  /** Outline width at size 1024, scaled with size. Constant, never hairline. */
+  outlineWidth?: number;
+};
 
 export function renderForm(form: Form, options: RenderOptions = {}): string {
   const size = options.size ?? 1024;
   const margin = options.margin ?? 0.09;
   const scheme = SCHEMES[form.scheme] ?? SCHEMES.teal;
+  const outline = options.outline ?? false;
+  const strokeCol = options.outlineColor ?? "#454545";
+  const strokeW = (options.outlineWidth ?? 6) * (size / 1024);
+  const strokeAttr = outline
+    ? ` stroke="${strokeCol}" stroke-width="${r2(strokeW)}" stroke-linejoin="round" stroke-linecap="round"`
+    : "";
+  const strokeThin = outline
+    ? ` stroke="${strokeCol}" stroke-width="${r2(strokeW * 0.8)}" stroke-linejoin="round" stroke-linecap="round"`
+    : "";
 
   const byId = new Map<string, Node>();
   for (const n of form.nodes) byId.set(n.id, n);
@@ -230,7 +260,7 @@ export function renderForm(form: Form, options: RenderOptions = {}): string {
     drawn.push({
       depth: b.depth,
       markup: [
-        `    <path d="${b.path}" fill="${base}"/>`,
+        `    <path d="${b.path}" fill="${base}"${strokeAttr}/>`,
         `    <g transform="translate(${r2(-lift * 0.75)} ${r2(-lift)}) scale(0.87)" transform-origin="${r2(b.centre[0])} ${r2(b.centre[1])}">` +
           `<path d="${b.path}" fill="${shade(base, 0.17)}"/></g>`,
       ].join("\n"),
@@ -238,7 +268,7 @@ export function renderForm(form: Form, options: RenderOptions = {}): string {
   }
 
   for (const sl of form.slabs ?? []) {
-    drawn.push(slabMarkup(sl, unit, colourOf(sl.tone ?? "a")));
+    drawn.push(slabMarkup(sl, unit, colourOf(sl.tone ?? "a"), strokeAttr, strokeThin));
   }
 
   drawn.sort((p, q) => p.depth - q.depth);

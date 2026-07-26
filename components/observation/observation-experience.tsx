@@ -6,27 +6,29 @@ import type { AnimalReference, ObservationQuestion, ObservationSession } from "@
 import { getDictionary } from "@/locales";
 import { observationService } from "@/lib/observation/observation-service";
 import { trackEvent } from "@/lib/analytics";
-import { submitObservations, captureFirstTouchUtm } from "@/lib/collection/client";
-import { submitWord } from "@/lib/naming/client";
-import { validateWord } from "@/lib/naming/word";
-import { GAME_VERSION } from "@/lib/collection/config";
+import { captureFirstTouchUtm } from "@/lib/collection/client";
+import { submitResponse } from "@/lib/response/client";
+import { validateResponse } from "@/lib/response/response";
 import { SpecimenPair } from "./specimen-pair";
 import { toObservationPair } from "@/lib/observation/observation-pair";
 import { ObservationPrompt } from "./observation-prompt";
-import { ChoiceList } from "./choice-list";
-import { WordInput } from "./word-input";
-import { AnimalName } from "./animal-name";
-import { ObservationProgress } from "./observation-progress";
+import { ResponseInput } from "./response-input";
+import { WhatPeopleSaw } from "./what-people-saw";
 import { Button } from "@/components/ui/button";
 import { TextLink } from "@/components/ui/text-link";
 
 const dict = getDictionary("en");
 
 /**
- * `/` IS the observation. Left column: the framed work, always in place. Right column:
- * only this changes. There is no "start" screen and no begin button — looking at
- * the work already is the observation, so the first question is present at once.
- * Submitting navigates to the record at /observations/[slug].
+ * `/` IS the observation. "Spotted This Week" sits above the two framed images;
+ * below them, one open question — "What do you see?" — free text, no choices, no
+ * steps. Looking at the work already is the observation.
+ *
+ * The answer is saved to Supabase and kept in the browser's local response
+ * record, and feeds "What did people see?". If the save fails, nothing is
+ * recorded and the person can try again — the input is kept and a short error is
+ * shown. Once the week is switched to results (status "closed"), the form is
+ * gone and the results stand in its place.
  */
 export function ObservationExperience({
   session,
@@ -41,9 +43,12 @@ export function ObservationExperience({
 }) {
   const router = useRouter();
   const pair = toObservationPair(animal);
-  const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const seeQ: ObservationQuestion | undefined =
+    questions.find((q) => q.id === "q-see") ?? questions[0];
+
+  const [see, setSee] = useState("");
   const [alreadyObserved, setAlreadyObserved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const submittedRef = useRef(false);
 
   const resultHref = `/observations/${session.slug}`;
@@ -51,194 +56,98 @@ export function ObservationExperience({
   useEffect(() => {
     trackEvent({ event: "observation_view", observation_id: session.id, animal_id: animal.id });
     trackEvent({ event: "observation_start", observation_id: session.id, animal_id: animal.id });
-    captureFirstTouchUtm(); // record first-touch UTM even if they leave before submitting
+    captureFirstTouchUtm();
     if (observationService.getResponse(session.id)) setAlreadyObserved(true);
   }, [session.id, animal.id]);
 
-  const current = questions[index];
-  const isLast = index === questions.length - 1;
-  const currentValue = current ? (answers[current.id] ?? "") : "";
-  const mustAnswerFirst = Boolean(current?.required) && currentValue.trim().length === 0;
-  const wordInvalid =
-    current?.type === "word" &&
-    currentValue.trim().length > 0 &&
-    !validateWord(currentValue).ok;
+  const seeCheck = see.trim() ? validateResponse(see) : null;
+  const canSubmit = Boolean(seeCheck?.ok);
 
-  function answer(choiceId: string) {
-    setAnswers((a) => ({ ...a, [current.id]: choiceId }));
-    trackEvent({
-      event: "observation_answer",
-      observation_id: session.id,
-      animal_id: animal.id,
-      question_id: current.id,
-      choice_id: choiceId,
-    });
-  }
-  function setText(v: string) {
-    setAnswers((a) => ({ ...a, [current.id]: v }));
-  }
-  function next() {
-    if (isLast) void submit();
-    else setIndex((i) => i + 1);
-  }
-  function skip() {
-    trackEvent({
-      event: "observation_skip",
-      observation_id: session.id,
-      animal_id: animal.id,
-      question_id: current.id,
-    });
-    next();
-  }
-  function back() {
-    if (index > 0) setIndex((i) => i - 1);
-  }
   async function submit() {
-    if (submittedRef.current) return; // guard double-click / re-entry
+    if (submittedRef.current) return;
+    const seeVerdict = validateResponse(see);
+    if (!seeVerdict.ok) return;
     submittedRef.current = true;
+    setSaveError(false);
 
-    // Collect the single-choice answers actually given (free-text is not counted).
-    const collected = questions
-      .filter((q) => q.type === "single-choice" && (answers[q.id] ?? "").length > 0)
-      .map((q) => ({
-        questionId: q.id,
-        answerId: answers[q.id],
-        questionVersion: q.version ?? "1",
-      }));
-
-    // eslint-disable-next-line no-console
-    console.info("[see-what] submit()", { answers, collected });
-
-    if (collected.length === 0) {
-      // Nothing to store (all questions skipped). Don't POST; still let the
-      // person see the record. Logged so an unexpected empty is visible.
-      // eslint-disable-next-line no-console
-      console.error("[see-what] No single-choice answers collected — nothing to POST", {
-        answers,
-        questions,
+    if (seeQ) {
+      trackEvent({
+        event: "observation_answer",
+        observation_id: session.id,
+        animal_id: animal.id,
+        question_id: seeQ.id,
       });
-    } else {
-      // GA4 (behaviour) — one event per answer. No session id / PII sent.
-      collected.forEach((a) =>
-        trackEvent({
-          event: "see_what_answer",
-          question_id: a.questionId,
-          answer_id: a.answerId,
-          game_version: GAME_VERSION,
-          question_version: a.questionVersion,
-        }),
-      );
-      try {
-        // AWAIT so the POST is actually sent and completed before we navigate.
-        await submitObservations(session.id, collected);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("[see-what] submitObservations failed", error);
-      }
     }
 
-    // The one word (Q3) — validated again here; saved for AI naming.
-    const wordQuestion = questions.find((q) => q.type === "word");
-    const wordRaw = wordQuestion ? (answers[wordQuestion.id] ?? "").trim() : "";
-    const wordCheck = wordRaw ? validateWord(wordRaw) : null;
-    if (wordCheck && wordCheck.ok) {
-      try {
-        await submitWord(animal.id, wordCheck.word);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("[see-what] submitWord failed", error);
-      }
+    // If the answer does not save, record nothing and let the person try again —
+    // keep their input and re-enable the button.
+    const saved = await submitResponse(animal.id, seeVerdict.text);
+    if (!saved) {
+      setSaveError(true);
+      submittedRef.current = false;
+      return;
     }
 
-    // Mark as observed locally AFTER the save attempts.
-    observationService.submit({ sessionId: session.id, answers, note: "" });
+    observationService.submit({
+      sessionId: session.id,
+      answers: seeQ ? { [seeQ.id]: seeVerdict.text } : {},
+      note: "",
+    });
     trackEvent({ event: "observation_complete", observation_id: session.id, animal_id: animal.id });
     trackEvent({ event: "observation_result_view", observation_id: session.id });
     router.push(resultHref);
   }
 
-  // ---- Right column ------------------------------------------------------
-  let right: ReactNode;
+  // ---- What sits below the work -----------------------------------------
+  let below: ReactNode;
 
-  if (alreadyObserved) {
-    right = (
+  if (!accepting) {
+    below = (
+      <div className="animate-rise-in">
+        <WhatPeopleSaw animalId={animal.id} />
+        <p className="mt-8 text-caption text-muted">Answers are closed for this week.</p>
+      </div>
+    );
+  } else if (alreadyObserved) {
+    below = (
       <div className="animate-rise-in">
         <p className="text-h3 font-normal text-charcoal">{dict.observe.already}</p>
-        <div className="mt-10">
+        <div className="mt-8">
           <TextLink href={resultHref} className="text-caption uppercase tracking-[0.18em]">
             {dict.observe.viewResult}
           </TextLink>
         </div>
       </div>
     );
-  } else if (!accepting) {
-    right = (
-      <div className="animate-rise-in">
-        <p className="text-h3 font-normal text-charcoal">{dict.observe.closed}</p>
-        <div className="mt-10">
-          <TextLink href={resultHref} className="text-caption uppercase tracking-[0.18em]">
-            {dict.observe.viewResult}
-          </TextLink>
-        </div>
-      </div>
-    );
-  } else if (current) {
-    right = (
+  } else if (seeQ) {
+    below = (
       <div>
-        <div className="mb-8 flex items-center justify-between">
-          <ObservationProgress total={questions.length} current={index} />
-          {index > 0 ? (
-            <button
-              onClick={back}
-              className="text-caption uppercase tracking-[0.14em] text-charcoal hover:text-ink"
-            >
-              {dict.observe.back}
-            </button>
-          ) : (
-            <span aria-hidden="true" />
-          )}
-        </div>
-
-        <ObservationPrompt question={current} className="mb-8" />
-
-        {current.type === "single-choice" ? (
-          <ChoiceList question={current} value={answers[current.id]} onChange={answer} />
-        ) : (
-          <WordInput value={answers[current.id] ?? ""} onChange={setText} />
-        )}
-
-        <div className="mt-12 flex items-center justify-between">
-          <button
-            onClick={skip}
-            className="text-caption uppercase tracking-[0.14em] text-charcoal hover:text-ink"
-          >
-            {dict.observe.skip}
-          </button>
-          <Button variant="quiet" onClick={next} disabled={mustAnswerFirst || wordInvalid}>
-            {isLast ? dict.observe.seeOthers : dict.observe.next}
+        <ObservationPrompt question={seeQ} className="mb-8" />
+        <ResponseInput value={see} onChange={setSee} onEnter={submit} ariaLabel={seeQ.question} />
+        <div className="mt-12 flex flex-col items-end gap-3">
+          {saveError ? (
+            <p className="text-caption text-clay" role="alert" aria-live="polite">
+              Couldn&apos;t save your answer. Please try again.
+            </p>
+          ) : null}
+          <Button variant="quiet" onClick={submit} disabled={!canSubmit}>
+            {dict.observe.seeOthers}
           </Button>
         </div>
-        {mustAnswerFirst ? (
-          <p className="mt-4 text-right text-caption text-muted">{dict.observe.requiredHint}</p>
-        ) : null}
       </div>
     );
   }
 
-  // ---- Stacked shell -----------------------------------------------------
-  // The two works are one observation unit, centred; the question sits below
-  // them (never a comparison quiz beside them). A generous gap keeps observing
-  // and answering as two separate moments.
   return (
     <div className="mx-auto flex w-full max-w-work flex-col items-center gap-12 lg:gap-16">
       <div className="w-full">
+        <p className="mb-6 text-center text-caption tracking-[0.12em] text-muted">
+          Spotted This Week
+        </p>
         <SpecimenPair pair={pair} priority />
-        <div className="mt-6 text-center">
-          <AnimalName animalId={animal.id} />
-        </div>
       </div>
 
-      <div className="w-full max-w-reading">{right}</div>
+      <div className="w-full max-w-reading">{below}</div>
     </div>
   );
 }

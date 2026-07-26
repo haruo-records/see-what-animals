@@ -44,6 +44,7 @@ export const SCHEMES: Record<string, Scheme> = {
   olive: { name: "olive and light grey", a: "#93A03E", b: PALE },
   pine: { name: "pine and light grey", a: "#349B72", b: PALE },
   orchid: { name: "muted orchid and light grey", a: "#A85F9E", b: PALE },
+  grey: { name: "grey and light grey", a: "#9A9A9A", b: PALE },
 };
 
 /** Moves a colour toward white by `amount`, or toward black if negative. */

@@ -23,8 +23,35 @@ import { EXTRA_ARCHETYPES } from "./archetypes-extra";
  * result than any individual form in it.
  */
 
+/**
+ * How many separate masses a structure is allowed to be.
+ *
+ * Requiring every individual to be one connected silhouette was a rendering
+ * convenience that had hardened into a design rule, and it was actively
+ * preventing two of the ways of living from being drawn at all: a thing that
+ * releases something cannot show the something still attached, and a thing that
+ * needs a partner cannot be one object with a seam down it.
+ *
+ * Detached parts still have to belong together. That is done by the geometry —
+ * a shared trajectory, corresponding shapes, a rhythm of spacing — never by
+ * drawing the relationship in.
+ */
+export type Cohesion = { min: number; max: number };
+
 export type Archetype = {
   name: string;
+  /** Defaults to exactly one body when absent. */
+  cohesion?: Cohesion;
+  /**
+   * How much of its own bounding box a structure must fill.
+   *
+   * The default exists to reject forms that are all reach and no body, which
+   * read as diagrams rather than objects. But for a structure whose whole
+   * reason for existing is that its parts are far apart, being sparse is the
+   * design and not a defect — so it is a property of the structure, not a rule
+   * imposed on all of them.
+   */
+  minCoverage?: number;
   /**
    * The traits this structure fixes. Density and weighting are left out because
    * they depend on how the parameters actually landed, and are read off the

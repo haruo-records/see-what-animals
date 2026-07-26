@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { playNav, utilityNav, legalNav, type NavItem } from "@/data/navigation";
+import { playNav, otherWaysNav, utilityNav, legalNav, type NavItem } from "@/data/navigation";
 import { getDictionary } from "@/locales";
 
 const dict = getDictionary("en");
@@ -14,7 +14,10 @@ const dict = getDictionary("en");
  * Platform, so the drawer reads as a list of *observation methods*, not levels:
  *
  *   PLAY
- *     Current Observation · Archive · Lab (soon)
+ *     Current Observation · Archive
+ *   ──────
+ *   OTHER WAYS OF SEEING
+ *     MVP · Blue · Mirroringo (each opens in a new tab)
  *   ──────
  *   Shop · Support
  *   ──────
@@ -110,6 +113,15 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
           <p className="u-label mb-4">Play</p>
           <div className="flex flex-col gap-4">
             {playNav.map((item) => (
+              <Item key={item.href} item={item} />
+            ))}
+          </div>
+
+          <hr className="my-6 border-0 border-t border-stone" />
+
+          <p className="u-label mb-4">Other ways of seeing</p>
+          <div className="flex flex-col gap-4">
+            {otherWaysNav.map((item) => (
               <Item key={item.href} item={item} />
             ))}
           </div>

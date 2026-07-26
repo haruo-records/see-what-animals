@@ -1,63 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchResults } from "@/lib/collection/client";
-import { observationService } from "@/lib/observation/observation-service";
+import { useState } from "react";
 import { siteSettings } from "@/data/site-settings";
 
 /**
- * SPOILER-FREE SHARE (learned from Wordle). The work image is never shared — only
- * a small text card that makes someone want to look for themselves:
+ * SPOILER-FREE SHARE. The work image is never shared — only a small text card
+ * that makes someone want to look for themselves:
  *
  *   See What?
- *   Observation #014
- *   18% saw what I saw.
+ *   Spotted this week
  *   What do you see?
  *   <link>
  *
- * The "% saw what I saw" line uses the viewer's own first answer (from
- * localStorage) against the live distribution. If they haven't answered (or no
- * data yet), that line is simply omitted — never invented.
+ * No answer, no numbers — nothing that pre-loads how to see it.
  */
 export function ShareResult({
   observationNumber,
   slug,
-  sessionId,
-  questionId,
 }: {
   observationNumber: string;
   slug: string;
-  sessionId: string;
-  questionId?: string;
 }) {
-  const [pct, setPct] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "copied" | "shared">("idle");
-
-  useEffect(() => {
-    if (!questionId) return;
-    const your = observationService.getResponse(sessionId)?.answers[questionId];
-    if (!your) return;
-    let active = true;
-    fetchResults(sessionId, questionId).then((res) => {
-      if (!active) return;
-      const row = (res?.global ?? []).find((g) => g.answerId === your);
-      if (row) setPct(row.percentage);
-    });
-    return () => {
-      active = false;
-    };
-  }, [sessionId, questionId]);
 
   function buildText(): string {
     const base = siteSettings.siteUrl.replace(/\/$/, "");
-    const lines = [
+    return [
       "See What?",
-      `Observation #${observationNumber}`,
-      pct != null ? `${pct}% saw what I saw.` : null,
+      "Spotted this week",
       "What do you see?",
       `${base}/observations/${slug}`,
-    ].filter((l): l is string => Boolean(l));
-    return lines.join("\n");
+    ].join("\n");
   }
 
   async function onShare() {
@@ -68,7 +41,7 @@ export function ShareResult({
         setStatus("shared");
         return;
       } catch {
-        /* cancelled or unsupported — fall through to copy */
+        /* cancelled — fall through to copy */
       }
     }
     try {

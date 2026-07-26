@@ -1,462 +1,58 @@
-# See What?
+# animals ジェネレータ — 最新一式
 
-**A place to see before naming.** *Where words fall short, observation begins.*
+前回 zip を同期して以降の、animals 生成に関わる全ファイル。
+Body Flow は不採用のため含まない（管状構造へ収束するため破棄済み）。
 
-See What? is the public brand + observation site. It is **not defined as a game**:
-there is no competition, no correct or incorrect answer, no score. The
-interaction is playful, but its purpose is to see before naming. The **animals archive**
-(`https://haruo-records.github.io/animals-site/`) remains the permanent home of
-the works themselves. This site never duplicates work-detail pages — it links
-back to the archive.
+## 中身
 
-> animals is the place they exist. See What? is where they are observed together.
+### 描画エンジン（変更しない）
+- `generator/organic/iso.ts` — アイソメ描画エンジン。輪郭線（濃いグレー #454545、全エッジ、
+  途切れなし、太さ一定）をオプションで出力。`renderForm(form, { outline: true })` で有効。
+- `generator/organic/palette.ts` — 12配色 + PALE + 構造確認用の grey。
+- `generator/organic/types.ts` — Form / Node / Link / Slab の型。
+- `generator/organic/grow.ts` — chain / ring / branch などの基本ヘルパー。
+- `generator/organic/forms/` — 承認済み固定6形。
+- `generator/organic/random/` — 21原型（有機9/中間6/人工6）とバッチ選定ロジック。
 
----
+### 構造カテゴリと部材語彙（維持）
+- `generator/varied/parts.ts` — 部材語彙。湾曲板・厚い輪・半環・くさび・折れ梁・扁平楕円体・
+  段差板・短い筒・中空箱・二股材など。既存レンダラを変えず、節+管とスラブの合成で表現。
+- `generator/varied/categories.ts` — A群12カテゴリ（単一塊/片持ち/吊り/入れ子/貫通/相互支持/
+  大空洞/離散/平面と立体/大小比/低広/高縦）。
+- `generator/varied/categories-b.ts` — B群12カテゴリ（ねじれ環/二重片持ち/横断空洞/多点支持/
+  板と中空/折り返し/三者関係/単純外形+複雑内部/上部展開/中央持上げ/一点噛合/流れ再接続）。
+- `generator/varied/categories-c.ts` — C群12カテゴリ（最新。接続密度と最大部材比の規則を
+  構造から満たすよう設計）。
+- `generator/varied/EVOLUTION.md` — 弱い構造（塊+添え物）の診断と、接続密度 ≥0.6 /
+  最大部材比 ≤0.5 の規則の記録。
 
-## What is in this build (Phase 1)
+### スクリプト
+- `generator/scripts/build-varied.ts` — A群を生成。`--grey` で構造確認、`--outline` で輪郭線。
+- `generator/scripts/build-varied-b.ts` — B群を生成（輪郭線つき）。
+- `generator/scripts/build-varied-c.ts` — C群を生成（輪郭線つき）。
+- `generator/scripts/build-organic.ts` — 21原型のランダムバッチ（`--seed X --count N`、最大10）。
+- `generator/scripts/validate-generator.ts` — 検証。
+- `generator/scripts/cli.ts` — 引数パーサ。
 
-Fully built and wired to mock data + `localStorage`:
-
-- **Home (`/`) = the current observation.** Opening the site *is* the
-  experience — a two-column page (framed work on the left, the questions on the right).
-  There is no start screen and **no "begin" button**: looking at the work already
-  is the observation, so the first question ("What do you see?") is present at
-  once. On mobile it stacks to one column.
-- **Observation Result (`/observations/[slug]`)** — how a form was seen, as
-  percentages only. No numbers of people anywhere (per choice or total), and no
-  status or aphorism text: the record is just the work, the distribution, the
-  names/notes others gave it, and the link back to the animals archive. `count`
-  and `totalResponses` stay in the data for future analysis. Same two-column shape
-  as the observation screen.
-- **No observation numbers on screen.** `id` / `slug` / `observationNumber` stay
-  in the data as management fields, but nothing numeric is shown to the visitor.
-- **Past Observations (`/observations`)** — a register of closed sessions,
-  reached from a result (not from the nav).
-- **About**, **Field Notes** (list + detail), **Shop** (list + detail), **Contact**, **Privacy**
-- **404 / error / loading**, sitemap, robots, JSON-LD, OGP/metadata
-- Design tokens, shared components, types, mock data, analytics helper, service/repository layer
-
-**Routing note:** the old `/observe` route was removed; it now **301-redirects to
-`/`** (`next.config.mjs`). The observation screen is managed in exactly one place.
-
-**Placeholders:** works are drawn as deterministic SVG "specimen" forms
-(`components/observation/specimen-form.tsx`) — no stock photos, no AI imagery.
-Replace with real images when ready (see *Replacing images* below).
-
-**Mock data:** results are placeholders (`data/mock-results.ts`). The UI presents
-them honestly (small counts show *"the record is still forming"*). Swap for a real
-datastore via `lib/observation/result-service.ts`.
-
----
-
-## Run locally
-
-Requires Node 18.18+ (Node 20+ recommended).
+## 使い方
 
 ```bash
-npm install
-npm run dev        # http://localhost:3000
-npm run build      # production build
-npm run start      # serve the production build
-npm run lint
-npm run typecheck  # tsc --noEmit (type-only check, no build)
+# C群（最新の構造規則）を輪郭線つきで生成
+npx tsx generator/scripts/build-varied-c.ts <好きなseed>
+
+# A群を、まずグレーで構造確認 → その後カラー+輪郭線
+npx tsx generator/scripts/build-varied.ts <seed> --grey
+npx tsx generator/scripts/build-varied.ts <seed> --outline
+
+# 21原型のランダム10体
+npx tsx generator/scripts/build-organic.ts -- --seed <seed> --count 10
 ```
 
-> This project was authored in an environment **without network access**, so
-> `npm install` / `npm run build` / `npm run lint` were **not executed there**
-> (the npm registry was unreachable). Run them once locally — they are expected
-> to pass. If anything trips, it will almost certainly be the dependency install,
-> not the source. A quick order that surfaces problems fastest:
-> `npm install` → `npm run typecheck` → `npm run lint` → `npm run build`.
-
----
-
-## Deploy to Vercel
-
-1. Push this folder to a GitHub repo.
-2. In Vercel: **New Project → import the repo**. Framework preset **Next.js** is auto-detected.
-3. Add environment variables (below) in **Project → Settings → Environment Variables**.
-4. Deploy. After changing env vars later, **Redeploy** for them to take effect.
-
-### Environment variables (`.env.example`)
-
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URL for metadata, OGP, sitemap (no trailing slash) |
-| `NEXT_PUBLIC_ANIMALS_ARCHIVE_URL` | animals archive URL (defaults to the current GitHub Pages URL) |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 id — leave empty to disable analytics |
-| `NEXT_PUBLIC_GTM_ID` | GTM id — leave empty to disable |
-
-Copy `.env.example` to `.env.local` for local dev.
-
----
-
-## How to add / edit content
-
-Everything is data. You never touch component code to add a week's observation.
-
-### Add a new work (AnimalReference) — `data/animal-references.ts`
-
-```ts
-{
-  id: "animal-024",
-  specimenNumber: "024",
-  imageUrl: "specimen:animal-024",     // placeholder, OR "/specimens/animal-024.png"
-  archiveUrl: "https://haruo-records.github.io/animals-site/",
-  alt: "An abstract form with … (describe shape, never assert meaning)",
-}
-```
-
-`alt` must describe form, not identity — e.g. *"An abstract form with a rounded
-body and three projecting shapes,"* not *"a bird-shaped creature."*
-
-### Add a new Observation Session — `data/observation-sessions.ts`
-
-```ts
-{
-  id: "observation-024",
-  slug: "observation-024",
-  observationNumber: "024",
-  animalId: "animal-024",              // points at animal-references.ts
-  intro: { en: "…", ja: "…" },
-  startsAt: "2026-07-20T00:00:00.000Z",
-  closesAt: "2026-07-26T23:59:59.000Z",
-  questionIds: ["q-see", "q-move", "q-name"],
-  allowPostCloseResponses: false,
-  featured: true,                       // only one featured at a time
-}
-```
-
-- **Set the run length here, not in code.** 7 / 14 / 30 days are just different
-  `closesAt` dates.
-- Only one session should have `featured: true` — it drives the observation on `/`.
-- **Status is automatic.** `scheduled | open | closed` is derived from the clock
-  in `lib/observation/session-status.ts`. Set an explicit `status` only to override.
-- **Demo note:** the featured session uses a `weeklyWindow()` helper so it is
-  always mid-run while you evaluate the template. **Before launch, open
-  `data/observation-sessions.ts` and set `USE_DEMO_WINDOW = false`** — the featured
-  session then uses the explicit `FEATURED_STARTS_AT` / `FEATURED_CLOSES_AT` ISO
-  strings right above it. That single flag is the only change needed to ship real
-  dates.
-
-### Post-close responses
-
-Set `allowPostCloseResponses: true` to keep accepting answers after `closesAt`
-(archive observations). `false` = view-only after close. This is per-session data.
-
-### Add / edit questions — `data/questions.ts`
-
-Add a question object and reference its `id` from a session's `questionIds`.
-Types: `single-choice`, `free-text` (both implemented in the flow),
-`multiple-choice`, `scale` (types defined, add UI when needed). Questions are
-**never scored**.
-
-`required: true` disables **Next** until the question is answered (works for both
-choice and free-text). **Skip is always available** and moves on without recording
-an answer — required never traps anyone. `q-see` ships as `required: true` to
-demonstrate this; the rest are optional.
-
-### Change mock results — `data/mock-results.ts`
-
-Keyed by session id. Percentages are pre-computed on purpose (don't imply more
-precision than exists). Keep minority answers — never merge them away.
-
-### Add a Field Note — `data/field-notes.ts`
-
-Append an entry with a new `slug`. `body` is a small block list
-(`paragraph | heading | figure | quote`) so figures and captions sit where you want.
-
-### Add a product — `data/products.ts`
-
-Append an entry. **Purchase is external:** set `externalPurchaseUrl` (Shopify /
-Stripe / BASE / STORES / …). Product data and the EC link are deliberately
-separate, so you are never coupled to one provider. No checkout runs on this site.
-
-### Navigation — `data/navigation.ts`
-
-`/` is itself the observation, so **Play is not in the nav**. The header is just the
-wordmark (→ `/`, the current observation) plus **About · Shop**. `primaryNav`
-holds those two; `footerNav` holds the utility trio **animals Archive · Contact ·
-Privacy**.
-
-Field Notes and previous observations are **not** in the nav by design — they are
-reached after finishing a play ("Previous observations" and the Field Notes link
-on the result). To resurface either in the header later, add an entry to
-`primaryNav`. Every item has an `enabled` flag if you want to stage a route
-without deleting it.
-
----
-
-## Replacing images
-
-Placeholders are generated SVG forms keyed by `"specimen:<seed>"`. To use real
-imagery:
-
-1. Put files in `public/specimens/` (e.g. `public/specimens/animal-024.png`).
-2. Change the data field to the path, e.g. `imageUrl: "/specimens/animal-024.png"`.
-3. `SpecimenView` / gallery / figure switch to `next/image` automatically when the
-   value does **not** start with `specimen:`.
-4. To load images from the archive or a CDN later, add the host to
-   `images.remotePatterns` in `next.config.mjs`.
-
-Do **not** use unrelated stock or AI-looking abstract images (see brief §37/§38).
-
----
-
-## Set the animals archive URL
-
-Default lives in `data/site-settings.ts` and reads `NEXT_PUBLIC_ANIMALS_ARCHIVE_URL`.
-Per-work links use each `AnimalReference.archiveUrl`, so you can later point
-individual forms at their own permanent archive URLs.
-
----
-
-## Analytics (GA4 / GTM)
-
-- One helper: `lib/analytics.ts` → `trackEvent({ event, … })`. Components never
-  push to `dataLayer` directly.
-- With no id set, events are safe no-ops (logged to console in dev only).
-- To enable: set `NEXT_PUBLIC_GA_MEASUREMENT_ID` and/or `NEXT_PUBLIC_GTM_ID`, then
-  add the GTM/GA `<Script>` where marked in `app/layout.tsx`.
-- Events emitted: `observation_view/start/answer/skip/note_submit/complete/result_view`,
-  `animals_archive_click`, `field_note_view`, `product_view`, `shop_click`,
-  `newsletter_click`, `contact_click`. Archive clicks send
-  `{ observation_id, animal_id, archive_url }`. Archive-download tracking is the
-  archive site's responsibility — this site only measures send-off.
-
----
-
-## Future backend (Supabase / Firebase / API / D1 / Vercel Postgres)
-
-The UI never touches storage directly.
-
-- `components/*` → `lib/observation/observation-service.ts` → `ObservationRepository`.
-- v0 uses `LocalObservationRepository` (localStorage) for simple per-device
-  de-duplication.
-- Swap in a backend by implementing `ObservationRepository` and calling
-  `setObservationRepository(new YourRepo())` once at startup — **no component
-  changes**. `result-service.ts` is where result reads move from mock → datastore.
-
----
-
-## Future CMS / EC
-
-- **CMS:** Field Notes / products are typed data (`data/*.ts`). Move them behind a
-  CMS by replacing the `data/*` reads with a fetch that returns the same types.
-- **EC:** already decoupled via `externalPurchaseUrl`. Add a provider by setting
-  the link; no code coupling.
-
----
-
-## Multi-language
-
-**Status: Japanese dictionary is prepared; locale routing is not implemented.**
-The UI ships in English. A complete Japanese dictionary exists (`locales/ja.ts`)
-and is type-checked against the English one, but there are **no `/ja` routes and
-no locale switch wired up yet** — `getDictionary()` is currently always called
-with `"en"`.
-
-To turn Japanese on later (not done in this build):
-
-- add an `app/[locale]/` route group (or middleware-based locale detection),
-- thread the active `locale` into `getDictionary(locale)` instead of the hardcoded
-  `"en"`,
-- add a language control (a `nav.language` label already exists).
-
-Copy already lives entirely in `locales/*`, not in components, so no component
-changes are needed to localize — only the routing/switch layer above.
-
----
-
----
-
-## Fonts (and matching the animals sister site)
-
-All font loading goes through one file: **`app/fonts.ts`**, which exports
-`sans` / `serif` / `jp`. `layout.tsx` imports only from there — so the typeface is
-changed in exactly one place.
-
-**Sister-brand alignment.** See What? should read as the same hand as the animals
-archive (`https://haruo-records.github.io/animals-site/`). The animals site's
-raw CSS could not be machine-read here (the page reader strips styles), so the
-*exact* face is not hard-verified. What is matched is the observable rhythm:
-light weights (no bold anywhere), airy small-caps labels (`0.18em`), generous
-line-height, restrained heading sizes, short centred lines, and minimal
-explanatory copy. The current faces are a quiet editorial pairing — **Source
-Serif 4** (display / wordmark / poetic lines), **Instrument Sans** (body / labels),
-**Noto Sans JP** (Japanese). **To lock 100% parity, set the animals face(s) in
-`app/fonts.ts`** (or drop local files per `app/fonts.local.example.ts`); nothing
-else needs to change.
-
-- Uses `next/font/google`, self-hosted at build time (Vercel builds fine).
-- **Resilience:** every face has `display: "swap"`, a system fallback stack, and
-  `adjustFontFallback`; Tailwind chains `var(--font-*) → system-ui → sans-serif`.
-- **Fully offline build?** Flip `USE_LOCAL_FONTS = true` in `app/fonts.ts` and
-  follow `app/fonts.local.example.ts`.
-
----
-
-## Design tokens
-
-- Source of truth: `app/globals.css` (CSS variables) **and** `tailwind.config.ts`
-  (same values as Tailwind theme). Change both together.
-- Palette: Paper / Plaster / **Canvas** / Stone / **Muted** / Charcoal + Ink, plus
-  accents Moss / Water / Clay / Sand / Dusk. **Muted** (`--color-muted`) is
-  secondary *text* only (labels, hints, meta) — ~20% darker than Stone so it stays
-  quiet but readable. Lines, the frame hairline, and backgrounds keep **Stone**, so
-  darkening the text never touches them.
-- **The framing model matters.** A work is shown as four stacked layers so it
-  reads as one mounted object on a wall, not a coloured banner:
-  `Paper` (the page — soft, unchanged) → `Plaster` (the mat, a touch darker) →
-  `Canvas` (`--color-canvas`, near-white — the *only* white surface, where the
-  work is mounted) → the animals artwork. This lives in
-  `components/observation/specimen-view.tsx`; keep the page Paper and only the
-  canvas white.
-- A **Dusk** dark context is scaffolded: add `data-theme="dusk"` on a section or
-  `<html>` to opt in (for special exhibitions / night observation). Not enabled by default.
-- Type scale, spacing rhythm, radii, and the two motion-safe animations
-  (`rise-in`, `breathe`) live in `tailwind.config.ts`. `prefers-reduced-motion`
-  is honoured globally in `globals.css`.
-
----
-
-## Sound (future)
-
-Not implemented in v0 by design. When added: no autoplay, play only after a user
-gesture, and persist a mute preference. A `nav.sound` label already exists in the
-dictionaries.
-
----
-
-## Brand guardrails (please keep)
-
-- The **work comes first**; UI is the frame, never louder than the form.
-- No scores, ranks, levels, badges, streaks, gacha, completion effects, FOMO.
-- Never fix a work's meaning; keep minority readings; free text is optional.
-- Don't duplicate animals work-detail pages here; link to the archive instead.
-- No iframe-embedding or scraping of the archive.
-
----
-
-## Changed / created files
-
-This is a fresh project; every file listed by `find . -type f` (excluding
-`node_modules`, `.next`) was created for it. Key directories:
-
-```
-app/            routes (App Router)
-components/     layout · observation · observations · editorial · shop · ui
-data/           animal-references · observation-sessions · questions · mock-results
-                products · field-notes · navigation · site-settings
-lib/            observation service/repository/result/status + analytics
-locales/        en · ja dictionaries
-types/          all domain types
-public/specimens/  drop real work images here
-```
-
----
-
-## Anonymous observation analytics (Supabase)
-
-When someone answers, their single-choice answers are recorded **anonymously** so
-the site can show real distributions ("how differently people saw this form") and
-break them down by country/language/device later. No accounts, no sign-in, no PII,
-no cross-site tracking, no fingerprint.
-
-**Flow**
-
-```
-observation (/) --submit--> POST /api/observations --validate--> Supabase (service role)
-result page --------> GET  /api/observations/results ---> real percentages
-```
-
-- **Scoped by session** — every answer stores the Observation Session id
-  (`session_id`), and aggregation filters on `session_id + question_id`, so a
-  `questionId` reused across different runs never mixes. If you created the table
-  before this change, run the one-line `alter table ... add column session_id`
-  shown at the top of `supabase/schema.sql`.
-- **Country** is derived server-side from Vercel's `x-vercel-ip-country` header.
-  The raw IP is never read for storage or saved. Locally the header is absent, so
-  `country_code` is `null` (never hardcode a country in code).
-- **Device** is a coarse bucket derived from the User-Agent (`mobile | tablet |
-  desktop | unknown`); the raw UA is not stored.
-- **Anonymous session id** is a rotating UUID in `localStorage` (~90 days), no PII.
-- **First-touch UTM** is captured once and reused; **referrer** is stored as a bare
-  host or `direct`.
-- **Version**: `gameVersion` lives in one place (`lib/collection/config.ts`,
-  optionally overridden by `NEXT_PUBLIC_GAME_VERSION`); `questionVersion` lives on
-  each question in `data/questions.ts` (`version`).
-- **Save failures never block the experience** — the POST is fire-and-forget with
-  `keepalive`; errors are logged in dev only.
-- **No dummy data**: the result percentages come from the live API. If Supabase is
-  not configured or there are no responses yet, choices simply show **0%** — never
-  invented numbers. (The offered *names* and *notes* on the result page are still
-  editable placeholder content, not analytics.)
-
-**GA4 vs Supabase** — GA4/GTM (if enabled) receive a lightweight `see_what_answer`
-behaviour event (`question_id`, `answer_id`, `game_version`, `question_version`
-only). The Supabase table is the source for on-site distributions. Session id, raw
-IP, full referrer URLs, and any PII are never sent to GA4.
-
-**Environment variables** (see `.env.example`)
-
-| Variable | Where | Purpose |
-| --- | --- | --- |
-| `SUPABASE_URL` | server | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | Insert/aggregate. Never exposed to the browser. |
-| `NEXT_PUBLIC_GAME_VERSION` | client | Optional override of `gameVersion`. |
-
-**Supabase setup (one time)**
-
-1. Create a Supabase project.
-2. SQL Editor → paste and run `supabase/schema.sql` (table + indexes + RLS + the
-   `get_observation_results` function). RLS is on with no anon policies, so only the
-   server (service role) can read/write — browsers cannot INSERT directly.
-3. Project Settings → API → copy the Project URL and the **service_role** key.
-4. In Vercel → Project → Settings → Environment Variables, add `SUPABASE_URL` and
-   `SUPABASE_SERVICE_ROLE_KEY` (Production + Preview). **Redeploy.**
-5. Answer once on the live site, then check the `observation_responses` table.
-
-**World vs country aggregation**
-
-```
-GET /api/observations/results?sessionId=<id>&questionId=<id>            # world (all countries)
-GET /api/observations/results?sessionId=<id>&questionId=<id>&country=JP # Japan only
-```
-
-- `sessionId` + `questionId` are required; results are always scoped to that run.
-- `country` is optional and validated server-side (ISO alpha-2). Absent = world;
-  an invalid value returns **400**. The world total is the standard display; the
-  on-site result UI shows the world distribution and does not add a country switch
-  (the API supports one when you want it).
-- **`XX`** is the stored country when Vercel can't determine one (e.g. local dev).
-  The `country_code` column is `NOT NULL DEFAULT 'XX'`. `XX` is excluded from the
-  "top countries" list. The raw IP is never read for storage or saved — only
-  Vercel's country header is used.
-
-**Country breakdown threshold** — `MIN_COUNTRY_SAMPLE_SIZE` (default 20) in
-`lib/collection/config.ts`. Below it, a country block returns
-`{ available: false, reason: "insufficient_sample" }`.
-
-**Migration for an existing table** — if you created `observation_responses`
-before `country_code`/`session_id` existed, run the commented `alter table …`
-lines at the top of `supabase/schema.sql` (they backfill `country_code` to `'XX'`
-and make it `NOT NULL`), then re-run the rest of the file.
-
-**Local testing** — Vercel's geo header is absent locally, so answers save as
-`XX`. To test a specific country, send the header yourself:
-
-```
-curl -X POST http://localhost:3000/api/observations \
-  -H "content-type: application/json" \
-  -H "x-vercel-ip-country: JP" \
-  -d '{"sessionId":"observation-023","gameVersion":"1.0.0","anonymousSessionId":"00000000-0000-4000-8000-000000000000","answers":[{"questionId":"q-see","answerId":"c-bird","questionVersion":"1"}]}'
-```
-
-Or set `DEV_FALLBACK_COUNTRY=JP` (honoured only when `NODE_ENV !== "production"`).
-
-**Cookie consent** — this design stores an anonymous id in `localStorage` (not a
-cookie) and does not collect PII, which reduces consent obligations, but whether a
-banner is legally required depends on your audience (e.g. EU/UK) and any analytics
-you enable. This is an implementation note, not legal advice — confirm for your
-regions before launch.
+出力は `generated/` 以下に SVG で書かれる（PNG化は cairosvg 等で別途）。
+
+## 維持している合意事項
+- 描画仕様（アイソメ/白背景/フラット/現行パレット/輪郭線/薄い影/顔なし/2〜3色）は固定。
+- 接続密度 ≥0.6、最大部材比 ≤0.5。
+- 部材は近接でなく実接続で繋ぐ。塊+添え物、外形と内部が無関係、意味なく散る小部材は作らない。
+- Body Flow指標は不採用。
+- 最終選別（採否・美的判断）は人間が目視で行う。数値だけで「成立」としない。

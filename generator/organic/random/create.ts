@@ -1,7 +1,7 @@
 import type { Form } from "../types";
 import type { Rng } from "../../random/seeded-random";
 import { createRng } from "../../random/seeded-random";
-import { ARCHETYPES, type Archetype } from "./archetypes";
+import { ARCHETYPES, type Archetype, type Cohesion } from "./archetypes";
 import { SCHEMES } from "../palette";
 import {
   distance,
@@ -93,10 +93,10 @@ function projectedExtent(form: Form): { w: number; h: number; area: number } {
  * here, and it is also exactly what decides whether the drawing comes out as a
  * single silhouette.
  */
-function isOneBody(form: Form): boolean {
+function countBodies(form: Form): number {
   const slabs = form.slabs ?? [];
   const total = form.nodes.length + slabs.length;
-  if (total === 0) return false;
+  if (total === 0) return 0;
 
   const parent = Array.from({ length: total }, (_, i) => i);
   const find = (i: number): number => {
@@ -117,7 +117,7 @@ function isOneBody(form: Form): boolean {
   for (const l of form.links) {
     const a = indexOfNode.get(l.a);
     const b = indexOfNode.get(l.b);
-    if (a === undefined || b === undefined) return false;
+    if (a === undefined || b === undefined) continue;
     union(a, b);
   }
 
@@ -159,18 +159,26 @@ function isOneBody(form: Form): boolean {
     }
   }
 
-  const root = find(0);
-  for (let i = 1; i < total; i++) if (find(i) !== root) return false;
-  return true;
+  const roots = new Set<number>();
+  for (let i = 0; i < total; i++) roots.add(find(i));
+  return roots.size;
 }
 
-export function check(form: Form): Rejection | null {
+export function check(
+  form: Form,
+  cohesion: Cohesion = { min: 1, max: 1 },
+  minCoverage: number = LIMITS.minCoverage,
+): Rejection | null {
   const masses = form.nodes.length + (form.slabs?.length ?? 0);
   if (masses < LIMITS.minMasses) return { reason: "too few masses", detail: `${masses}` };
   if (masses > LIMITS.maxMasses) return { reason: "too many masses", detail: `${masses}` };
 
-  if (!isOneBody(form)) {
-    return { reason: "not one body", detail: "some masses do not touch the rest" };
+  const bodies = countBodies(form);
+  if (bodies < cohesion.min || bodies > cohesion.max) {
+    return {
+      reason: "wrong number of bodies",
+      detail: `${bodies}, wanted ${cohesion.min === cohesion.max ? cohesion.min : `${cohesion.min}-${cohesion.max}`}`,
+    };
   }
 
   const { w, h, area } = projectedExtent(form);
@@ -181,7 +189,7 @@ export function check(form: Form): Rejection | null {
   if (aspect > LIMITS.maxAspect) return { reason: "too wide", detail: aspect.toFixed(2) };
 
   const coverage = area / (w * h);
-  if (coverage < LIMITS.minCoverage) {
+  if (coverage < minCoverage) {
     return { reason: "too sparse", detail: coverage.toFixed(3) };
   }
 
@@ -296,7 +304,7 @@ export function createOne(
     // deciding its colour while designing it is how a set ends up being one
     // creature in six shades.
     const form: Form = { id, title, ...archetype.build(sub, "teal") };
-    const problem = check(form);
+    const problem = check(form, archetype.cohesion ?? { min: 1, max: 1 }, archetype.minCoverage);
     if (problem) {
       last = problem;
       continue;
@@ -345,17 +353,47 @@ export function recentlyUsed(manifests: string[][], depth = 3): Set<string> {
   return used;
 }
 
-const REGISTER_QUOTA: Register[] = ["organic", "hybrid", "mechanical"];
+/**
+ * A register quota that scales with batch size instead of cycling 1:1:1.
+ *
+ * There are nine organic structures but only six of each of the other two, so a
+ * ten-body batch cannot be evenly split — asking for four mechanical would
+ * exhaust the register once the silhouette and support caps thinned it. The
+ * split leans organic in proportion to how many organic structures exist, which
+ * is the only division a batch this size can actually satisfy.
+ */
+function registerQuota(count: number): Register[] {
+  const organic = Math.round(count * 0.4);
+  const hybrid = Math.round((count - organic) / 2);
+  const mechanical = count - organic - hybrid;
+  const out: Register[] = [];
+  // Interleaved rather than blocked, so a short batch still gets a mix.
+  const pools: Array<[Register, number]> = [
+    ["organic", organic],
+    ["hybrid", hybrid],
+    ["mechanical", mechanical],
+  ];
+  let left = count;
+  while (left > 0) {
+    for (const pair of pools) {
+      if (pair[1] > 0) {
+        out.push(pair[0]);
+        pair[1]--;
+        left--;
+        if (left === 0) break;
+      }
+    }
+  }
+  return out;
+}
 
 /**
- * A batch of six: two from each register, no structure twice, no more than two
- * doing the same kind of job, and no two sharing a silhouette family or a way
- * of standing up.
+ * A batch chosen so no two individuals read as siblings from across a room.
  *
- * The silhouette and support rules matter more than they sound. Two
- * individuals can pass every other test and still read as siblings from across
- * a room, because the eye sorts by outline and by stance long before it gets to
- * anything the DNA is measuring.
+ * The eye sorts by outline and by stance long before it reaches anything the
+ * DNA measures, so silhouette family and support are held apart as hard as the
+ * pool allows: unique while structures remain, then capped at two. Structure
+ * itself is never repeated within a batch.
  */
 export function createBatch(seed: string, count: number, avoid: Set<string> = new Set()): Batch {
   const rng = createRng(seed);
@@ -368,17 +406,24 @@ export function createBatch(seed: string, count: number, avoid: Set<string> = ne
   const usedSupport = new Set<string>();
   const familyCount = new Map<string, number>();
 
-  const quota = Array.from({ length: count }, (_, i) => REGISTER_QUOTA[i % REGISTER_QUOTA.length]);
+  const quota = registerQuota(count);
+  const silhouetteCount = new Map<string, number>();
+  const supportCount = new Map<string, number>();
 
   for (let i = 0; i < count; i++) {
     const want = quota[i];
 
+    // Silhouette and support are unique while the pool is wide, and capped at
+    // two once it narrows — the cap being the point at which insisting on
+    // uniqueness would empty the register and break the balance instead.
+    const silhouetteCap = count > 8 ? 2 : 1;
+    const supportCap = count > 8 ? 2 : 1;
     const allowed = (a: Archetype, strict: boolean) => {
       if (usedNames.has(a.name)) return false;
-      if (usedSilhouette.has(a.dna.silhouette)) return false;
-      if (usedSupport.has(a.dna.support)) return false;
+      if ((silhouetteCount.get(a.dna.silhouette) ?? 0) >= silhouetteCap) return false;
+      if ((supportCount.get(a.dna.support) ?? 0) >= supportCap) return false;
       const family = FUNCTION_FAMILY[a.dna.purpose];
-      if ((familyCount.get(family) ?? 0) >= 2) return false;
+      if ((familyCount.get(family) ?? 0) >= (count > 8 ? 3 : 2)) return false;
       if (strict && avoid.has(a.name)) return false;
       return true;
     };
@@ -400,7 +445,7 @@ export function createBatch(seed: string, count: number, avoid: Set<string> = ne
         (a) =>
           !usedNames.has(a.name) &&
           !avoid.has(a.name) &&
-          (familyCount.get(FUNCTION_FAMILY[a.dna.purpose]) ?? 0) < 2,
+          (familyCount.get(FUNCTION_FAMILY[a.dna.purpose]) ?? 0) < (count > 8 ? 3 : 2),
       );
     }
     if (pool.length === 0) pool = inRegister.filter((a) => !usedNames.has(a.name));
@@ -414,8 +459,8 @@ export function createBatch(seed: string, count: number, avoid: Set<string> = ne
 
     const archetype = rng.fork(`pick-structure:${i}`).pick(pool);
     usedNames.add(archetype.name);
-    usedSilhouette.add(archetype.dna.silhouette);
-    usedSupport.add(archetype.dna.support);
+    silhouetteCount.set(archetype.dna.silhouette, (silhouetteCount.get(archetype.dna.silhouette) ?? 0) + 1);
+    supportCount.set(archetype.dna.support, (supportCount.get(archetype.dna.support) ?? 0) + 1);
     const family = FUNCTION_FAMILY[archetype.dna.purpose];
     familyCount.set(family, (familyCount.get(family) ?? 0) + 1);
 

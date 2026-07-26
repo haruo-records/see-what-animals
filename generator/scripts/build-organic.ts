@@ -26,7 +26,7 @@ generator:organic — the six approved forms, or a batch of new ones
       The same seed always gives the same batch.
 
   --seed <text>   name the run. Required for generation.
-  --count <n>     how many, 1-8. Default 6.
+  --count <n>     how many, 1-10. Default 10.
   --force         overwrite an existing batch of that name.
 `;
 
@@ -227,7 +227,7 @@ function main() {
   if (seedFlag === true) throw new CliError("--seed needs a value, for example --seed 2026-07-20");
 
   if (typeof seedFlag === "string") {
-    generate(seedFlag, optionalInt(args, "count", 6, 1, 8), bool(args, "force"));
+    generate(seedFlag, optionalInt(args, "count", 10, 1, 10), bool(args, "force"));
     return;
   }
 
