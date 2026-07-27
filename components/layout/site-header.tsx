@@ -29,7 +29,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-paper">
+      <header className="sticky top-0 z-40 bg-paper" data-analytics-area="header">
         <div className="mx-auto grid h-16 max-w-shell grid-cols-[1fr_auto_1fr] items-center px-6 sm:px-8">
           <div className="justify-self-start">
             <button

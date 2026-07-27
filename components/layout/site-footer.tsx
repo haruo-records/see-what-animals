@@ -12,7 +12,7 @@ import { PageShell } from "./page-shell";
  */
 export function SiteFooter() {
   return (
-    <footer className="mt-10 border-t border-stone py-8">
+    <footer className="mt-10 border-t border-stone py-8" data-analytics-area="footer">
       <PageShell>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <nav className="flex flex-col gap-3 sm:flex-row sm:gap-8" aria-label="Footer">

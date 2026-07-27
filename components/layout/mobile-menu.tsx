@@ -109,7 +109,7 @@ export function SiteNav({ open, onClose }: { open: boolean; onClose: () => void 
           </button>
         </div>
 
-        <nav className="mt-5 flex flex-1 flex-col" aria-label="Primary">
+        <nav className="mt-5 flex flex-1 flex-col" aria-label="Primary" data-analytics-area="side_menu">
           <p className="u-label mb-4">Play</p>
           <div className="flex flex-col gap-4">
             {playNav.map((item) => (

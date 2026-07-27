@@ -5,6 +5,7 @@ import { siteSettings } from "@/data/site-settings";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { NavigationAnalytics } from "@/components/analytics/navigation-analytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteSettings.siteUrl),
@@ -50,6 +51,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans">
         {/* Google Analytics 4 (gtag.js) — loaded once for every page. */}
         <GoogleAnalytics />
+        {/* One delegated listener sends `navigation_click` for every <a> click. */}
+        <NavigationAnalytics />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-charcoal focus:px-4 focus:py-2 focus:text-paper"
