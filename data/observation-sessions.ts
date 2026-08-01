@@ -45,8 +45,8 @@ const USE_LIVE_WEEKLY_CYCLE = false;
 
 // The dates shown on the record for the current manual run (Sunday 06:00 JST →
 // Saturday 06:00 JST). Edit these when you publish a new week.
-const FEATURED_STARTS_AT = "2026-07-19T06:00:00.000+09:00";
-const FEATURED_CLOSES_AT = "2026-07-25T06:00:00.000+09:00";
+const FEATURED_STARTS_AT = "2026-08-02T06:00:00.000+09:00";
+const FEATURED_CLOSES_AT = "2026-08-08T06:00:00.000+09:00";
 
 const featuredWindow = USE_LIVE_WEEKLY_CYCLE
   ? weeklyCycleJst()
@@ -57,10 +57,10 @@ const featuredWindow = USE_LIVE_WEEKLY_CYCLE
 
 export const observationSessions: ObservationSession[] = [
   {
-    id: "observation-023",
-    slug: "observation-023",
-    observationNumber: "023",
-    animalId: "animal-023",
+    id: "observation-024",
+    slug: "observation-024",
+    observationNumber: "024",
+    animalId: "animal-024",
     intro: "Take a moment before you decide what it is.",
     startsAt: featuredWindow.startsAt,
     closesAt: featuredWindow.closesAt,
